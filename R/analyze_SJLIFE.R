@@ -1,26 +1,56 @@
 # Analyze SJLIFE data
+args <- commandArgs(trailingOnly=TRUE)
+aID <- as.numeric(args[1])
+
 library(dplyr)
 library(magrittr)
 library(GWASTools)
 library(SNPRelate)
+source("/rsrch3/home/biostatistics/rsun3/github/ICSKAT/R/ICSKAT.R")
+source("/rsrch3/home/biostatistics/rsun3/github/ICSKAT/R/clean_geno.R")
+source("/rsrch3/home/biostatistics/rsun3/github/ICSKAT/R/ICSKAT_fit_null.R")
+source("/rsrch3/home/biostatistics/rsun3/github/ICSKAT/R/make_IC_dmat.R")
+
+output_dir <- "/rsrch3/home/biostatistics/rsun3/sjlife/output"
+max_gene_size <- 5000
+
+# load the gene information
+setwd("/rsrch3/home/biostatistics/rsun3/github/LungCancerAssoc/Data")
+load(file="ensembl_refgene_hg19_20180109.rda")
+all_genes <- ensembl_refgene_hg19_20180109
 
 # load outcome data
-setwd('/users/ryansun/desktop/skat/ghd')
+setwd("/rsrch3/home/biostatistics/rsun3/sjlife/data")
 ghd_dat <- read.csv("time_678_999.csv")
 
-# Pick a chromosome
-chr <- 14
+# Pick a section of genes to analyze based on aID argument
+genes_per_chunk <- 200
+nchunks <- ceiling(table(all_genes$Chr) / genes_per_chunk)
+chunk_pts <- cumsum(nchunks)
+if (aID <= chunk_pts[1]) {
+	chr <- 1
+	start_row <- genes_per_chunk*(aID - 1) + 1
+	end_row <- genes_per_chunk*aID
+} else {
+	chr <- min(which(chunk_pts >= aID))
+	start_row <- (aID - chunk_pts[chr-1] -1) * genes_per_chunk + 1
+	end_row <- (aID - chunk_pts[chr-1]) * genes_per_chunk
+}
 buffer <- 5000
-setwd('/users/ryansun/desktop/skat/chr14')
 
-# load the gene data on the selected chromosome
-library(LungCancerAssoc)
-data("ensembl_refgene_hg19_20180109")
-gene_info <- ensembl_refgene_hg19_20180109 %>% filter(Chr == chr) %>% arrange(txStart)
+#------------------------------------------------------------------#
+# End possibly varying parameters
+#------------------------------------------------------------------#
+
+# Cut to that chromosome
+gene_info <- all_genes %>% filter(Chr == chr) %>% 
+	arrange(txStart) %>%
+	slice(start_row:min(nrow(.), end_row))
 
 # if the .gds does not exist, will create a new one
 # warning, this will be the same size as the WGS data, could be very big
-fname <- "SJLIFE.GERMLINE.2364.GATKv3.4.vqsr.release.0714_chr14.PASS.decomposed.sjlid_eur"
+setwd("/rsrch3/home/biostatistics/rsun3/sjlife/data/")
+fname <- paste0("SJLIFE.GERMLINE.2364.GATKv3.4.vqsr.release.0714_chr", chr, ".PASS.decomposed.sjlid_eur")
 gdsfile <- paste0(fname, ".gds")
 if (!file.exists(gdsfile)) {
     bed_file <- paste0(fname, ".bed")
@@ -91,7 +121,7 @@ for (gene_it in 1:nrow(gene_info)) {
     cleanMap <- cleanMap[MAFpos, ]
     MAFs <- MAFs[MAFpos]
     resultsDF$cleanq[gene_it] <- length(MAFs)
-    if (length(MAFs) < 2) {next}
+    if (length(MAFs) < 2 | length(MAFs) > max_gene_size) {next}
     # weights by beta
     weights <- dbeta(MAFs, 1, 25)
     GW <- cleanG %*% diag(weights)
@@ -160,83 +190,8 @@ for (gene_it in 1:nrow(gene_info)) {
 # close the gds connection
 close(gds)
 
+# write results
+setwd(output_dir)
+write.table(resultsDF, paste0("results", aID, ".txt"), append=F, quote=F, row.names=F, col.names=T, sep="\t")
 
 
-#' Clean gds genotype function, called by geno_sjlife_gds.R
-#'
-#' @param n only keep SNPs with at least n non-missing entries
-#' @param geno_data genotype matrix from the getGenotype() function
-#'
-#' @return An n*m matrix where m depends on the number of SNPs that passed QC.
-
-clean_geno <- function(n, geno_data, map_file) {
-
-    # loop through SNPs, remove missing and add two halves
-    Gmat <- c()
-    removed <- c()
-    flipped <- c()
-    for (snp_it in 1:nrow(geno_data)) {
-        # remove missing
-        temp_snp <- geno_data[snp_it, ]
-        temp_snp <- temp_snp[which(!is.na(temp_snp))]
-        if (length(temp_snp) < n) {
-            removed <- c(removed, snp_it)
-            next
-        }
-
-        # flip to minor allele
-        if (mean(temp_snp) > 1) {
-            temp_snp <- 2 - temp_snp
-            flipped <- c(flipped, snp_it)
-        }
-
-        # add SNP to data matrix
-        Gmat <- cbind(Gmat, temp_snp[1:n])
-    }
-
-    # flip before remove in map file
-    temp_new_A <- map_file$A
-    temp_new_A[flipped] <- map_file$B[flipped]
-    map_file$B[flipped] <- map_file$A[flipped]
-    map_file$A <- temp_new_A
-    # remove
-    map_file <- map_file[-removed, ]
-
-    return(list(cleanG=Gmat, cleanMap = map_file))
-}
-
-
-#' Clean gds genotype function, called by geno_sjlife_gds.R.
-#' Imputes missing data.
-#'
-#' @param n only keep SNPs with at least n non-missing entries
-#' @param geno_data genotype matrix from the getGenotype() function
-#'
-#' @return An n*m matrix where m depends on the number of SNPs that passed QC.
-
-clean_geno_impute <- function(n, geno_data) {
-
-    # impute each column of geno_data
-    Gmat <- t(geno_data)
-    for (snp_it in 1:ncol(Gmat)) {
-
-        # identify missing first
-        miss_idx <- which(is.na(Gmat[, snp_it]))
-
-        # flip to minor allele
-        temp_MAF <- mean(Gmat[, snp_it], na.rm=TRUE)
-        if (temp_MAF > 1) {
-            Gmat[, snp_it] <- 2 - Gmat[, snp_it]
-            temp_MAF <- mean(Gmat[, snp_it], na.rm=TRUE)
-        }
-
-        # impute
-        if (length(miss_idx) == 0) {next}
-        Gmat[miss_idx, snp_it] <- rbinom(n=length(miss_idx), size=2, prob=temp_MAF)
-
-        # flip to minor allele again after impute
-        if (mean(Gmat[, snp_it]) > 1) {Gmat[, snp_it] <- 2 - Gmat[, snp_it]}
-    }
-
-    return(Gmat)
-}
