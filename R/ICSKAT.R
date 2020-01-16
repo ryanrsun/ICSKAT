@@ -31,13 +31,16 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     # Cumulative hazard under null
     H_L <- exp(left_dmat %*% null_beta)
     H_R <- exp(right_dmat %*% null_beta)
+    # Sometimes H_R goes to infinity
+    infHR <- which(H_R == Inf)
+    if (length(infHR) > 0) {H_R[infHR] <- max( max(H_R[which(H_R < Inf)]), 10 )}
     # Survival term
     SL <- ifelse(lt == 0, 1, exp(-H_L))
     SR <- ifelse(rt == 999, 0, exp(-H_R))
     SR[!is.finite(SR)] <- 0
     A <- SL - SR
     # sometimes A is 0
-    A[which(A <= 0)] <- min(A[which(A > 0)])
+    A[which(A == 0)] <- min(A[which(A > 0)])
 
     # score vector for gamma
     Ug_term1 <- t(G) %*% diag(ifelse(lt == 0, 0, exp(-H_L) * -H_L))

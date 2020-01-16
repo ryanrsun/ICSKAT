@@ -40,7 +40,7 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
         SR[!is.finite(SR)] <- 0
         A <- SL - SR
         # sometimes A is 0
-        A[which(A <= 0)] <- min(A[which(A > 0)])
+        A[which(A == 0)] <- min(A[which(A > 0)])
 
         # score vector
         U_term1 <- t(left_dmat) %*% diag(ifelse(lt == 0, 0, exp(-H_L) * -H_L))
