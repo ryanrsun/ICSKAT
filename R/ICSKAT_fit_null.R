@@ -25,7 +25,7 @@
 #' ICSKAT_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat, lt=lt, rt=rt,
 #' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
 #'
-ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat, lt, rt, eps=10^(-6)) {
+ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat, lt, rt, checkpoint=FALSE, eps=10^(-6)) {
 
     diff_beta <- 1
     iter <- 0
@@ -43,22 +43,22 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
         A[which(A == 0)] <- min(A[which(A > 0)])
 
         # score vector
-        U_term1 <- t(left_dmat) %*% diag(ifelse(lt == 0, 0, exp(-H_L) * -H_L))
-        U_term2 <- t(right_dmat) %*% diag(ifelse(rt == 999, 0, exp(-H_R) * -H_R))
+        U_term1 <- sweep(t(left_dmat), 2, ifelse(lt == 0, 0, exp(-H_L) * -H_L), FUN="*")
+        U_term2 <- sweep(t(right_dmat), 2, ifelse(rt == 999, 0, exp(-H_R) * -H_R), FUN="*")
         U_term2[is.na(U_term2)] <- 0
-        U <- apply( (U_term1 - U_term2) %*% diag(1/A), 1, sum)
+        U <- rowSums( sweep(U_term1 - U_term2, 2, A, FUN="/") )
 
         # information matrix
-        I_term1 <- t(left_dmat) %*% diag( tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) ) %*% left_dmat
+        I_term1 <- crossprod(left_dmat, sweep(left_dmat, 1, tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A), FUN="*"))
         # sometimes H_R is so large that when it gets squared it goes to Inf and then multiplied
         # by exp(-H_R) it goes to NaN
         check_Iterm2 <- (H_R * exp(-H_R) - H_R^2 * exp(-H_R))
         check_Iterm2[which(is.nan(check_Iterm2))] <- 0
-        I_term2 <- t(right_dmat) %*% diag( obs_ind * as.numeric(check_Iterm2 / A) ) %*% right_dmat
+        I_term2 <- crossprod(right_dmat, sweep(right_dmat, 1, obs_ind * as.numeric(check_Iterm2 / A), FUN="*"))
         check_tempterm <- (H_R * exp(-H_R))
         check_tempterm[which(is.nan(check_tempterm))] <- 0
-        temp_term <- t(left_dmat) %*% diag( tpos_ind * as.numeric((H_L * exp(-H_L)) / A) ) -
-            t(right_dmat) %*% diag( obs_ind * as.numeric( check_tempterm / A) )
+				temp_term <- sweep(t(left_dmat), 2, tpos_ind * as.numeric((H_L * exp(-H_L)) / A), FUN="*") - 
+						sweep(t(right_dmat), 2, obs_ind * as.numeric(check_tempterm / A), FUN="*")
         I_term3 <- temp_term %*% t(temp_term)
         I <- I_term1 + I_term2  - I_term3
 
@@ -66,6 +66,7 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
         diff_beta <- (beta_new - temp_beta) %*% t(beta_new - temp_beta)
         temp_beta <- as.numeric(beta_new)
         iter <- iter + 1
+				if(checkpoint) {cat("iter ", iter, "\n")}
     }
 
     return(list(beta_fit=beta_new, iter=iter, Itt=I))
