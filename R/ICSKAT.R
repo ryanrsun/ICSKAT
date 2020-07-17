@@ -43,31 +43,31 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     A[which(A == 0)] <- min(A[which(A > 0)])
 
     # score vector for gamma
-    Ug_term1 <- t(G) %*% diag(ifelse(lt == 0, 0, exp(-H_L) * -H_L))
-    Ug_term2 <- t(G) %*% diag(ifelse(rt == 999, 0, exp(-H_R) * -H_R))
+    Ug_term1 <- sweep(t(G), 2, ifelse(lt == 0, 0, exp(-H_L) * -H_L), FUN="*")
+    Ug_term2 <- sweep(t(G), 2, ifelse(rt == 999, 0, exp(-H_R) * -H_R), FUN="*")
     Ug_term2[which(is.na(Ug_term2))] <- 0
-    Ugamma <- apply( (Ug_term1 - Ug_term2) %*% diag(1/A), 1, sum )
+    Ugamma <- rowSums( sweep(Ug_term1 - Ug_term2, 2, A, FUN="/") )
 
     # bottom right corner for information matrix corresponding to Igg
-    Igg_term1 <- t(G) %*% diag( tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) ) %*% G
+    Igg_term1 <- crossprod(G, sweep(G, 1, tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A), FUN="*"))
     # sometimes H_R is so large that when it gets squared it goes to Inf and then multiplied
     # by exp(-H_R) it goes to NaN
     check_Iggterm2 <- (H_R * exp(-H_R) - H_R^2 * exp(-H_R))
     check_Iggterm2[which(is.nan(check_Iggterm2))] <- 0
-    Igg_term2 <- t(G) %*% diag( obs_ind * as.numeric(check_Iggterm2 / A) ) %*% G
-    temp_termgg <- t(G) %*% diag( tpos_ind * as.numeric((H_L * exp(-H_L)) / A) ) -
-        t(G) %*% diag( obs_ind * as.numeric((H_R * exp(-H_R)) / A) )
+    Igg_term2 <- crossprod(G, sweep(G, 1, obs_ind * as.numeric(check_Iggterm2 / A), FUN="*"))
+    temp_termgg <- sweep(t(G), 2, tpos_ind * as.numeric((H_L * exp(-H_L)) / A), FUN="*") -
+        sweep(t(G), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
     Igg_term3 <- temp_termgg %*% t(temp_termgg)
     Igg <- Igg_term1 + Igg_term2  - Igg_term3
 
     # off-diagonals for Igtheta
-    Igt_term1 <- t(G) %*% diag( tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) ) %*% left_dmat
-    Igt_term2 <- t(G) %*% diag( obs_ind * as.numeric(check_Iggterm2 / A) ) %*% right_dmat
-    temp_term_gt1 <- t(left_dmat) %*% diag( tpos_ind * as.numeric((H_L * exp(-H_L)) / A) ) -
-        t(right_dmat) %*% diag( obs_ind * as.numeric((H_R * exp(-H_R)) / A) )
-    temp_term_gt2 <- t(G) %*% diag( tpos_ind * as.numeric((-H_L * exp(-H_L)) / A) ) +
-        t(G) %*% diag( obs_ind * as.numeric((H_R * exp(-H_R)) / A) )
-    Igt_term3 <- t(temp_term_gt1 %*% t(temp_term_gt2))
+    Igt_term1 <- crossprod(G, sweep(left_dmat, 1, tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A), FUN="*"))
+    Igt_term2 <- crossprod(G, sweep(right_dmat, 1, obs_ind * as.numeric(check_Iggterm2 / A), FUN="*"))
+    temp_term_gt1 <- sweep(t(left_dmat), 2, tpos_ind * as.numeric((H_L * exp(-H_L)) / A), FUN="*") -
+        sweep(t(right_dmat), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
+    temp_term_gt2 <- sweep(t(G), 2, tpos_ind * as.numeric((-H_L * exp(-H_L)) / A), FUN="*") +
+        sweep(t(G), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
+   	Igt_term3 <- temp_term_gt2 %*% t(temp_term_gt1) 
 
     Igt <- Igt_term1 + Igt_term2 + Igt_term3
 
