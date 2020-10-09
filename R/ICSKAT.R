@@ -92,5 +92,5 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     B_burden=(sum(Ugamma))^2/sum(sig_mat);
     p_burden=1-pchisq(B_burden,df=1)
 
-    return(list(p_SKAT=p_SKAT, p_burden=p_burden, complex=is.complex(lambdaQ)))
+    return(list(p_SKAT=p_SKAT, p_burden=p_burden, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
 }
