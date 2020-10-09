@@ -39,7 +39,8 @@ cmCovar <- fread("cardiomyopathyCovar.txt", data.table=FALSE) %>%
 	mutate(anthDose = ifelse(is.na(anthDose), 0, anthDose)) %>%	
 	mutate(race = ifelse(as.character(race) == "Black", 1, 0)) %>%
 	mutate(gender = ifelse(as.character(gender) == "Male", 1, 0)) %>%	
-	select(sjlid, agediag, gender, cyclophosDose, ifosDose, race, chest, anthDose)
+	mutate(anth = ifelse(is.na(anth), 0, 1)) %>%	
+	select(sjlid, agediag, gender, cyclophos, ifos, race, chest, anth)
 
 # merge covariates, times
 cmData <- merge(cmTimes, cmCovar, by="sjlid")
@@ -152,7 +153,7 @@ for (gene_it in 1:nrow(gene_info)) {
 		cmData <- cmData[match(rownames(GW), as.character(cmData$sjlid)), ]
 
     # make design matrices
-    dmats <- make_IC_dmat(X=as.matrix(cmData %>% select(agediag, gender, cyclophosDose, ifosDose, chest, anthDose)), 
+    dmats <- make_IC_dmat(X=as.matrix(cmData %>% select(agediag, gender, cyclophos, ifos, chest, anth)), 
 				lt=cmData$U, rt=cmData$V)
 
     # fit null model
@@ -214,6 +215,6 @@ close(gds)
 
 # write results
 setwd(output_dir)
-write.table(resultsDF, paste0("CMresults", aID, ".txt"), append=F, quote=F, row.names=F, col.names=T, sep="\t")
+write.table(resultsDF, paste0("CM2results", aID, ".txt"), append=F, quote=F, row.names=F, col.names=T, sep="\t")
 
 
