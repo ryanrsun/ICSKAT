@@ -47,6 +47,9 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     Ug_term2 <- sweep(t(G), 2, ifelse(rt == 999, 0, exp(-H_R) * -H_R), FUN="*")
     Ug_term2[which(is.na(Ug_term2))] <- 0
     Ugamma <- rowSums( sweep(Ug_term1 - Ug_term2, 2, A, FUN="/") )
+		# rm to save RAM
+		rm(Ug_term1)
+		rm(Ug_term2)
 
     # bottom right corner for information matrix corresponding to Igg
     Igg_term1 <- crossprod(G, sweep(G, 1, tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A), FUN="*"))
@@ -59,6 +62,10 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
         sweep(t(G), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
     Igg_term3 <- temp_termgg %*% t(temp_termgg)
     Igg <- Igg_term1 + Igg_term2  - Igg_term3
+		# rm to save RAM
+		rm(Igg_term1)
+		rm(Igg_term2)
+		rm(Igg_term3)
 
     # off-diagonals for Igtheta
     Igt_term1 <- crossprod(G, sweep(left_dmat, 1, tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A), FUN="*"))
@@ -68,8 +75,13 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     temp_term_gt2 <- sweep(t(G), 2, tpos_ind * as.numeric((-H_L * exp(-H_L)) / A), FUN="*") +
         sweep(t(G), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
    	Igt_term3 <- temp_term_gt2 %*% t(temp_term_gt1) 
-
     Igt <- Igt_term1 + Igt_term2 + Igt_term3
+		# rm to save RAM
+		rm(Igt_term1)
+		rm(Igt_term2)
+		rm(temp_term_gt1)
+		rm(temp_term_gt2)
+		rm(Igt_term3)
 
     # we just need the Igg portion of the inverse
     sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
