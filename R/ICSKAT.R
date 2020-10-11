@@ -89,8 +89,9 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     lambdaQ <- eigen(sig_mat)$values
     p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
 
-    B_burden=(sum(Ugamma))^2/sum(sig_mat);
+    burdenQ <- (sum(Ugamma))^2
+    B_burden= burdenQ / sum(sig_mat);
     p_burden=1-pchisq(B_burden,df=1)
 
-    return(list(p_SKAT=p_SKAT, p_burden=p_burden, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
+    return(list(p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
 }
