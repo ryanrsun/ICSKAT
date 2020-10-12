@@ -55,8 +55,8 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
 		
 		# The Igg term
 		ggTerm1 <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A)
-		ggTerm2 <- as.numeric(H_R * exp(-H_R) - H_R^2 * exp(-H_R)) / A
-		ggTerm2[which(is.nan(Rterm2))] <- 0
+		ggTerm2 <- obs_ind * as.numeric(H_R * exp(-H_R) - H_R^2 * exp(-H_R)) / A
+		ggTerm2[which(is.nan(ggTerm2))] <- 0
 		ggTerm3 <- ( (tpos_ind * as.numeric((H_L * exp(-H_L))) - obs_ind * as.numeric((H_R * exp(-H_R)))) / A )^2
 		ggTerm <- ggTerm1 + ggTerm2 - ggTerm3
 		IggHalf <- sweep(G, 1, ggTerm, FUN="*")
@@ -64,7 +64,7 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
 		G[1, 1] <- 1.0 * G[1, 1]
 		Igg <- eigenMapMatMultCrossTwo(G, IggHalf)
 		# rm to save ram
-		rm(ggTerm1, ggTerm2, ggTerm3, ggTerm, IggHalf)
+		rm(ggTerm1, ggTerm3, ggTerm, IggHalf)
 		
     # off-diagonals for Igtheta
 		gtTermL <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) + 
@@ -75,7 +75,7 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
 		gtHalfR <- sweep(right_dmat, 1, gtTermR, FUN="*")
 		Igt <- eigenMapMatMultCrossTwo(G, gtHalfL) + eigenMapMatMultCrossTwo(G, gtHalfR) 
 		# rm to save ram
-		rm(gtTermL, gtTermR, gtHalfL, gtHalfR)
+		rm(gtTermL, gtTermR, ggTerm2, gtHalfL, gtHalfR)
 
     # we just need the Igg portion of the inverse
     sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
