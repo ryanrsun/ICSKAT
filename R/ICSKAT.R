@@ -80,16 +80,16 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     # we just need the Igg portion of the inverse
     sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
     skatQ <- t(Ugamma) %*% Ugamma
-    lambdaQorig <- eigen(sig_mat)$values
+    lambdaQ <- eigen(sig_mat)$values
     # follow SKAT procedure with eigenvalues
-    IDX1 <-which(lambdaQorig >= 0)
-    IDX2 <-which(lambdaQorig > mean(lambdaQorig[IDX1])/100000)
-    lambdaQ <-lambdaQorig[IDX2]
+    #IDX1 <-which(lambdaQorig >= 0)
+    #IDX2 <-which(lambdaQorig > mean(lambdaQorig[IDX1])/100000)
+    #lambdaQ <-lambdaQorig[IDX2]
     p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
 
     burdenQ <- (sum(Ugamma))^2
     B_burden= burdenQ / sum(sig_mat);
     p_burden=1-pchisq(B_burden,df=1)
 
-    return(list(p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQorig)))
+    return(list(p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
 }
