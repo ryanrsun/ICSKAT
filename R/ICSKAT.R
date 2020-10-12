@@ -42,46 +42,40 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, G, null_bet
     # sometimes A is 0
     A[which(A == 0)] <- min(A[which(A > 0)])
 
-    # score vector for gamma
-    Ug_term1 <- sweep(t(G), 2, ifelse(lt == 0, 0, exp(-H_L) * -H_L), FUN="*")
-    Ug_term2 <- sweep(t(G), 2, ifelse(rt == 999, 0, exp(-H_R) * -H_R), FUN="*")
-    Ug_term2[which(is.na(Ug_term2))] <- 0
-    Ugamma <- rowSums( sweep(Ug_term1 - Ug_term2, 2, A, FUN="/") )
+    # just sweep once
+    Ug_sweep1 <- tpos_ind * exp(-H_L) * -H_L 
+    Ug_sweep2 <- obs_ind * exp(-H_R) * -H_R
+    Ug_sweep2[which(is.na(Ug_sweep2))] <- 0
+    Ug_sweepTerm <- (Ug_sweep1 - Ug_sweep2) / A
+    Ugamma <- rowSums(sweep(t(G), 2, Ug_sweepTerm, FUN="*"))
 		# rm to save RAM
-		rm(Ug_term1)
-		rm(Ug_term2)
-
-    # bottom right corner for information matrix corresponding to Igg
-    Igg_term1 <- crossprod(G, sweep(G, 1, tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A), FUN="*"))
-    # sometimes H_R is so large that when it gets squared it goes to Inf and then multiplied
-    # by exp(-H_R) it goes to NaN
-    check_Iggterm2 <- (H_R * exp(-H_R) - H_R^2 * exp(-H_R))
-    check_Iggterm2[which(is.nan(check_Iggterm2))] <- 0
-    Igg_term2 <- crossprod(G, sweep(G, 1, obs_ind * as.numeric(check_Iggterm2 / A), FUN="*"))
-    temp_termgg <- sweep(t(G), 2, tpos_ind * as.numeric((H_L * exp(-H_L)) / A), FUN="*") -
-        sweep(t(G), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
-    Igg_term3 <- temp_termgg %*% t(temp_termgg)
-    Igg <- Igg_term1 + Igg_term2  - Igg_term3
-		# rm to save RAM
-		rm(Igg_term1)
-		rm(Igg_term2)
-		rm(Igg_term3)
-
+		rm(Ug_sweep1)
+		rm(Ug_sweep2)
+		rm(Ug_sweepTerm)
+		
+		# The Igg term
+		ggTerm1 <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A)
+		ggTerm2 <- as.numeric(H_R * exp(-H_R) - H_R^2 * exp(-H_R)) / A
+		ggTerm2[which(is.nan(Rterm2))] <- 0
+		ggTerm3 <- ( (tpos_ind * as.numeric((H_L * exp(-H_L))) - obs_ind * as.numeric((H_R * exp(-H_R)))) / A )^2
+		ggTerm <- ggTerm1 + ggTerm2 - ggTerm3
+		IggHalf <- sweep(G, 1, ggTerm, FUN="*")
+		# have to do this to make it a double matrix
+		G[1, 1] <- 1.0 * G[1, 1]
+		Igg <- eigenMapMatMultCrossTwo(G, IggHalf)
+		# rm to save ram
+		rm(ggTerm1, ggTerm2, ggTerm3, ggTerm, IggHalf)
+		
     # off-diagonals for Igtheta
-    Igt_term1 <- crossprod(G, sweep(left_dmat, 1, tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A), FUN="*"))
-    Igt_term2 <- crossprod(G, sweep(right_dmat, 1, obs_ind * as.numeric(check_Iggterm2 / A), FUN="*"))
-    temp_term_gt1 <- sweep(t(left_dmat), 2, tpos_ind * as.numeric((H_L * exp(-H_L)) / A), FUN="*") -
-        sweep(t(right_dmat), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
-    temp_term_gt2 <- sweep(t(G), 2, tpos_ind * as.numeric((-H_L * exp(-H_L)) / A), FUN="*") +
-        sweep(t(G), 2, obs_ind * as.numeric((H_R * exp(-H_R)) / A), FUN="*")
-   	Igt_term3 <- temp_term_gt2 %*% t(temp_term_gt1) 
-    Igt <- Igt_term1 + Igt_term2 + Igt_term3
-		# rm to save RAM
-		rm(Igt_term1)
-		rm(Igt_term2)
-		rm(temp_term_gt1)
-		rm(temp_term_gt2)
-		rm(Igt_term3)
+		gtTermL <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) + 
+		  tpos_ind * as.numeric((H_L * exp(-H_L)) / A) * (tpos_ind * as.numeric((-H_L * exp(-H_L)) / A) + obs_ind * as.numeric((H_R * exp(-H_R)) / A))
+		gtTermR <- obs_ind * ggTerm2 - obs_ind * as.numeric((H_R * exp(-H_R)) / A) * 
+		  (tpos_ind * as.numeric((-H_L * exp(-H_L)) / A) + obs_ind * as.numeric((H_R * exp(-H_R)) / A))
+		gtHalfL <- sweep(left_dmat, 1, gtTermL, FUN="*")
+		gtHalfR <- sweep(right_dmat, 1, gtTermR, FUN="*")
+		Igt <- eigenMapMatMultCrossTwo(G, gtHalfL) + eigenMapMatMultCrossTwo(G, gtHalfR) 
+		# rm to save ram
+		rm(gtTermL, gtTermR, gtHalfL, gtHalfR)
 
     # we just need the Igg portion of the inverse
     sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
