@@ -1,6 +1,5 @@
 // [[Rcpp::depends(RcppEigen)]]
 
-
 #include <RcppEigen.h>
 using namespace Eigen;
 using namespace std;
@@ -8,7 +7,6 @@ using namespace std;
 // [[Rcpp::export]]
 SEXP eigenMapMatMultC(const Eigen::Map<Eigen::MatrixXd> A, Eigen::Map<Eigen::MatrixXd> B){
   Eigen::MatrixXd C = A * B;
-
   return Rcpp::wrap(C);
 }
 
