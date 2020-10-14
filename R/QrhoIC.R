@@ -24,6 +24,7 @@
 #'
 QrhoIC <- function(rhoVec, icskatOut, liu=TRUE) {
   nRho <- length(rhoVec)
+	p <- nrow(icskatOut$sig_mat)
  
   # this DF will also hold the Davies p-value and Qrho for each rho
   # in addition to the liu p-value and moment-matching parameters
