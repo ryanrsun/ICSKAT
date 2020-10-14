@@ -15,7 +15,11 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu)
   
   # calculate the distribution of \kappa 
-  zMat <- chol(icskatOut$sig_mat)
+  # sometimes the machine precision is a little off so this matrix isn't symmetric even though it should be
+  # (just numerical rounding errors)
+  sig_mat <- icskatOut$sig_mat
+  sig_mat[lower.tri(sig_mat)] = t(sig_mat)[lower.tri(sig_mat)]
+  zMat <- chol(sig_mat)
   zBar <- apply(zMat, 1, mean)
   #kappaSubtract <- zBar %*% t(zBar) %*% zMat / (sum(zBar^2))
   # faster, saves n^2 multiplications in getting kappaSubtract
