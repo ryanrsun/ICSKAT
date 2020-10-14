@@ -3,7 +3,7 @@
 #' Puts together the entire design matrix for both the left and right ends of the
 #' interval, pasting together the non-genetic covariates with the cubic spline basis.
 #'
-#' @param X n*p matrix of non-genetic covariates.
+#' @param xMat n*p matrix of non-genetic covariates.
 #' @param lt n*1 vector with left end of intervals (min is 0).
 #' @param rt n*1 vector with right end of intervals.
 #' @param nknots number of knots to use for cubic spline basis (default is 1).
@@ -14,12 +14,12 @@
 #'#'
 #' @export
 #' @examples
-#' X <- matrix(data=rnorm(200), nrow=100)
+#' xMat <- matrix(data=rnorm(200), nrow=100)
 #' lt <- runif(n=100, min=0, max=5)
 #' rt <- lt + runif(n=100, min=0, max=5)
-#' make_IC_dmat(X=X, lt=lt, rt=rt)
+#' make_IC_dmat(xMat=xMat, lt=lt, rt=rt)
 #'
-make_IC_dmat <- function(X, lt, rt, nknots=1) {
+make_IC_dmat <- function(xMat, lt, rt, nknots=1) {
 
     # place the knots at equally spaced quantiles
     obs_ind <- as.numeric(rt < 999)
@@ -28,19 +28,19 @@ make_IC_dmat <- function(X, lt, rt, nknots=1) {
     # a0 and a1 are always there
     right_a0 <- 1
     right_a1 <- log(rt)
-    if (is.null(X)) {
+    if (is.null(xMat)) {
         right_dmat <- cbind(right_a0, right_a1)
     } else {
-        right_dmat <- cbind(X, right_a0, right_a1)
+        right_dmat <- cbind(xMat, right_a0, right_a1)
     }
 
     # if lt = 0, then the cumulative hazard is necessarily 0 so set it all to 0
     left_a0 <- ifelse(lt == 0, 0, 1)
     left_a1 <- ifelse(lt == 0, 0, log(lt))
-    if (is.null(X)) {
+    if (is.null(xMat)) {
         left_dmat <- cbind(left_a0, left_a1)
     } else {
-        left_dmat <- cbind(X, left_a0, left_a1)
+        left_dmat <- cbind(xMat, left_a0, left_a1)
     }
 
 
