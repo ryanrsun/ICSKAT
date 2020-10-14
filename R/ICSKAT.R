@@ -32,26 +32,26 @@
 #'
 ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_beta, Itt) {
 
-    # Cumulative hazard under null
-    H_L <- exp(left_dmat %*% null_beta)
-    H_R <- exp(right_dmat %*% null_beta)
-    # Sometimes H_R goes to infinity
-    infHR <- which(H_R == Inf)
-    if (length(infHR) > 0) {H_R[infHR] <- max( max(H_R[which(H_R < Inf)]), 10 )}
-    # Survival term
-    SL <- ifelse(lt == 0, 1, exp(-H_L))
-    SR <- ifelse(rt == 999, 0, exp(-H_R))
-    SR[!is.finite(SR)] <- 0
-    A <- SL - SR
-    # sometimes A is 0
-    A[which(A == 0)] <- min(A[which(A > 0)])
+  # Cumulative hazard under null
+  H_L <- exp(left_dmat %*% null_beta)
+  H_R <- exp(right_dmat %*% null_beta)
+  # Sometimes H_R goes to infinity
+  infHR <- which(H_R == Inf)
+  if (length(infHR) > 0) {H_R[infHR] <- max( max(H_R[which(H_R < Inf)]), 10 )}
+  # Survival term
+  SL <- ifelse(lt == 0, 1, exp(-H_L))
+  SR <- ifelse(rt == 999, 0, exp(-H_R))
+  SR[!is.finite(SR)] <- 0
+  A <- SL - SR
+  # sometimes A is 0
+  A[which(A == 0)] <- min(A[which(A > 0)])
 
-    # just sweep once
-    Ug_sweep1 <- tpos_ind * exp(-H_L) * -H_L 
-    Ug_sweep2 <- obs_ind * exp(-H_R) * -H_R
-    Ug_sweep2[which(is.na(Ug_sweep2))] <- 0
-    Ug_sweepTerm <- (Ug_sweep1 - Ug_sweep2) / A
-    Ugamma <- rowSums(sweep(t(gMat), 2, Ug_sweepTerm, FUN="*"))
+  # just sweep once
+  Ug_sweep1 <- tpos_ind * exp(-H_L) * -H_L 
+  Ug_sweep2 <- obs_ind * exp(-H_R) * -H_R
+  Ug_sweep2[which(is.na(Ug_sweep2))] <- 0
+  Ug_sweepTerm <- (Ug_sweep1 - Ug_sweep2) / A
+  Ugamma <- rowSums(sweep(t(gMat), 2, Ug_sweepTerm, FUN="*"))
 	# rm to save RAM
 	rm(Ug_sweep1)
 	rm(Ug_sweep2)
@@ -70,7 +70,7 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
 	# rm to save ram
 	rm(ggTerm1, ggTerm3, ggTerm, IggHalf)
 		
-    # off-diagonals for Igtheta
+  # off-diagonals for Igtheta
 	gtTermL <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) + 
 	  tpos_ind * as.numeric((H_L * exp(-H_L)) / A) * (tpos_ind * as.numeric((-H_L * exp(-H_L)) / A) + obs_ind * as.numeric((H_R * exp(-H_R)) / A))
 	gtTermR <- obs_ind * ggTerm2 - obs_ind * as.numeric((H_R * exp(-H_R)) / A) * 
@@ -81,15 +81,15 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
 	# rm to save ram
 	rm(gtTermL, gtTermR, ggTerm2, gtHalfL, gtHalfR)
 
-    # we just need the Igg portion of the inverse
-    sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
-    skatQ <- t(Ugamma) %*% Ugamma
-    lambdaQ <- eigen(sig_mat)$values
-    p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
+  # we just need the Igg portion of the inverse
+  sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
+  skatQ <- t(Ugamma) %*% Ugamma
+  lambdaQ <- eigen(sig_mat)$values
+  p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
 
-    burdenQ <- (sum(Ugamma))^2
-    B_burden= burdenQ / sum(sig_mat);
-    p_burden=1-pchisq(B_burden,df=1)
+  burdenQ <- (sum(Ugamma))^2
+  B_burden= burdenQ / sum(sig_mat);
+  p_burden=1-pchisq(B_burden,df=1)
 
-    return(list(p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
+  return(list(p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
 }
