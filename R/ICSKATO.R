@@ -22,13 +22,13 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   # sometimes sig_mat is not full rank, so you have to use pivoting
   zPrelim <- chol(sig_mat, pivot=TRUE)
   # if not full rank, have to modify it a bit
-  r <- attr(zMat, 'rank')
+  r <- attr(zPrelim, 'rank')
   p <- nrow(sig_mat)
   if (r < p) {
     sig_mat[(r+1):p, (r+1):p] <- 0
-    oo <- order(attr(zMat, 'pivot'))
+    oo <- order(attr(zPrelim, 'pivot'))
     zMat <- zPrelim[, oo]
-  } else {zPrelim <- zMat}
+  } else {zMat <- zPrelim}
   
   # done with decomposing sig_mat
   zBar <- apply(zMat, 1, mean)
