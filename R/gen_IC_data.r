@@ -35,9 +35,9 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, probMiss=0.1) {
   
   # there is a 10% chance of missing a visit
   nVisits <- length(obsTimes)
-  madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=0.9), nrow=n, ncol=7)
+  madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=0.9), nrow=n, ncol=nVisits)
   # your visit is uniformly distributed around the intended obsTime, windowHalf on each side
-  visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=7),
+  visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
                      MARGIN=2, STATS=obsTimes, FUN="+")
   
   # get all visits for each subject
