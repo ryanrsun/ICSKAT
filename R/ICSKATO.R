@@ -1,6 +1,18 @@
-
-# assumes that you already ran ICSKAT.R
-# weightVec is a p*1 vector, gMat is an n*p matrix, xMat is an n*q matrix with intercept
+#' ICSKATO.R
+#'
+#' Calculate SKATO test for ICSKAT.
+#'
+#' @param icskatOut The output list from ICSKAT().
+#' @param liu Boolean for whether to use Liu moment matching approximation for p-value or Davies method.
+#' @param rhoVec Vector of rhos to search over.
+#'
+#' @return A list with the elements:
+#' \item{pval}{SKATO p-value}
+#' \item{QrhoDF}{Data frame containing the distribution and p-value for each Krho.}
+#' \item{r}{The rank of the cholesky decomposition of the kappa part}
+#'
+#' @export
+#'
 ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1)) {
   
   # check the rhoVec
@@ -90,6 +102,6 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   skatoPval <- 1 - intOut[1]$value
   
   # return
-  return(list(pval = skatoPval, QrhoDF=QrhoDF))
+  return(list(pval = skatoPval, QrhoDF=QrhoDF, r=r))
 }
 
