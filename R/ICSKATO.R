@@ -10,6 +10,7 @@
 #' \item{pval}{SKATO p-value}
 #' \item{QrhoDF}{Data frame containing the distribution and p-value for each Krho.}
 #' \item{r}{The rank of the cholesky decomposition of the kappa part}
+#' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false)}
 #'
 #' @export
 #'
@@ -62,8 +63,10 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   muK1 <- sum(kappaLambda)
   sigmaZeta <- 2 * sqrt(sum(t(kappaHalf) %*% kappaHalf * t(kappaSubtract) %*% kappaSubtract))
   sigmaK1 <- sqrt(2 * sum(kappaLambda^2) + sigmaZeta^2)
-  
-  # the \tau(\rho) value that varies with rho
+ 	kurtK1 <- 12 * sum(kappaLambda^4) / (sum(kappaLambda^2))^2 
+	dfK1 <- 12 / kurtK1 
+	 
+	# the \tau(\rho) value that varies with rho
   tauVec <- rep(NA, length(rhoVec))
   for (rho_it in 1:length(rhoVec)) {
     tempRho <- rhoVec[rho_it]
@@ -96,12 +99,20 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   QrhoDF <- QrhoDF %>% mutate(rhoVec = rhoVec, tauVec = tauVec, qMinVec = qMinVec)
   
   # integrate
-  intOut <-  integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000, muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, 
-                       kappaLambda = kappaLambda, QrhoDF = QrhoDF)
-  # final SKATO pvalue
-  skatoPval <- 1 - intOut[1]$value
-  
+	# sometimes the CompQuadForm has numerical issues
+  intOut <-  tryCatch(integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000, 
+		muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF), error=function(e) e)
+	intDavies <- TRUE	
+	if (class(intOut)[1] == "simpleError") {
+		intOut <- integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+			muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, dfK1 = dfK1)
+		intDavies <- FALSE	
+	}
+
+	# final ICSKATO p-value
+	skatoPval <- 1 - intOut[1]$value
+
   # return
-  return(list(pval = skatoPval, QrhoDF=QrhoDF, r=r))
+  return(list(pval = skatoPval, QrhoDF=QrhoDF, r=r, intDavies = intDavies))
 }
 
