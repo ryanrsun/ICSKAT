@@ -11,6 +11,7 @@
 #' \item{QrhoDF}{Data frame containing the distribution and p-value for each Krho.}
 #' \item{r}{The rank of the cholesky decomposition of the kappa part}
 #' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false)}
+#' \item{err}{Boolean, did the integration run into an error}
 #'
 #' @export
 #'
@@ -104,15 +105,20 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
 		muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF), error=function(e) e)
 	intDavies <- TRUE	
 	if (class(intOut)[1] == "simpleError") {
-		intOut <- integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
-			muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, dfK1 = dfK1)
+		intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+			muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, dfK1 = dfK1), error=function(e) e)
 		intDavies <- FALSE	
+	}
+
+	# sometimes even the liu integration doesn't work
+	if (class(intOut[1] == "simpleEreror") {
+		return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=1))
 	}
 
 	# final ICSKATO p-value
 	skatoPval <- 1 - intOut[1]$value
 
   # return
-  return(list(pval = skatoPval, QrhoDF=QrhoDF, r=r, intDavies = intDavies))
+  return(list(pval = skatoPval, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=0))
 }
 
