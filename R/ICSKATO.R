@@ -111,7 +111,7 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
 	}
 
 	# sometimes even the liu integration doesn't work
-	if (class(intOut[1] == "simpleEreror") {
+	if (class(intOut)[1] == "simpleError") {
 		return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=1))
 	}
 
