@@ -47,9 +47,9 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE) {
 		# so many weird things can happen with the eigenvalues
 		idx1 <- which(tempLambda >= 0)
 	  idx2 <- which(tempLambda > mean(tempLambda[idx1])/100000)
-  	if (length(idx2) < 1) stop("Issue finding eigenvalues for QrhoIC()")	
+  	if (length(idx2) <= 1) {return(-1)}
 		tempLambda <- tempLambda[idx2]
-  
+ 		 
 		# liu moment matching to get the distribution
     liuMatch <- chiSqMatchFast(lambdaVec = tempLambda)
     

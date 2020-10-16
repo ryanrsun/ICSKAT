@@ -27,8 +27,10 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   
   # get the Qrho, p-value of Qrho, its distribution parameters
   QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu)
+ 	# sometimes numerically we just get weird things like only one eigenvalue
+	if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) } 
   
-  # calculate the distribution of \kappa 
+	# calculate the distribution of \kappa 
   # sometimes the machine precision is a little off so this matrix isn't symmetric even though it should be
   # (just numerical rounding errors)
   sig_mat <- icskatOut$sig_mat
