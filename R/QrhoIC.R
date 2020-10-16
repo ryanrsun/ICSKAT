@@ -52,7 +52,8 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE) {
  		 
 		# liu moment matching to get the distribution
     liuMatch <- chiSqMatchFast(lambdaVec = tempLambda)
-    
+   	if (class(liuMatch)[1] == "numeric") {return(-1)}
+ 
     # SKATO uses liu by default
     if (liu) {
       # could comment out the p-value since we dont ever use it again - also, should I ignore the delta and set it to 0 always?
