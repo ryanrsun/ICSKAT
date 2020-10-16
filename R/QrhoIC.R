@@ -43,7 +43,14 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE) {
     toDecomp <- eigenMapMatMultCrossTwo(Rrho, icskatOut$sig_mat)
     Aeigen <- eigen(toDecomp, symmetric = TRUE, only.values = TRUE)
     tempLambda <- Aeigen$values
-    # liu moment matching to get the distribution
+  
+		# so many weird things can happen with the eigenvalues
+		idx1 <- which(tempLambda >= 0)
+	  idx2 <- which(tempLambda > mean(tempLambda[idx1])/100000)
+  	if (length(idx2) < 1) stop("Issue finding eigenvalues for QrhoIC()")	
+		tempLambda <- tempLambda[idx2]
+  
+		# liu moment matching to get the distribution
     liuMatch <- chiSqMatchFast(lambdaVec = tempLambda)
     
     # SKATO uses liu by default
