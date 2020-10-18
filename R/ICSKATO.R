@@ -104,11 +104,11 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   # integrate
 	# sometimes the CompQuadForm has numerical issues
   intOut <-  tryCatch(integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000, 
-		muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF), error=function(e) e)
+		muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, abs.tol = 10^(-25)), error=function(e) e)
 	intDavies <- TRUE	
 	if (class(intOut)[1] == "simpleError") {
 		intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
-			muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, dfK1 = dfK1), error=function(e) e)
+			muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
 		intDavies <- FALSE	
 	}
 
