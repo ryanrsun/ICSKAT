@@ -6,6 +6,8 @@
 #' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
 #' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
 #' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param lt n*1 vector of left side of time interval.
+#' @param rt n*1 vector of right side of time interval.
 #' @param gMat n*p genotype matrix.
 #' @param null_beta (p+nknots+2)*1 vector of coefficients for null model.
 #' @param Itt (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.
