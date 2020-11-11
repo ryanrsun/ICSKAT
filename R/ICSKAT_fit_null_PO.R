@@ -25,7 +25,7 @@
 #' ICSKAT_fit_null_PO(init_beta=rep(0, 5), left_dmat=dmats$left_dmat, lt=lt, rt=rt,
 #' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
 #'
-ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, right_dmat, lt, rt, checkpoint=FALSE, eps=10^(-6)) {
+ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, rt, checkpoint=FALSE, eps=10^(-6)) {
   
   diffCoef <- 1
   iter <- 0
