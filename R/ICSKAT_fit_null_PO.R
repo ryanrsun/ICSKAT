@@ -33,9 +33,10 @@ ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, r
   
   stopSolve <- FALSE
   while( !is.nan(diffCoef) & stopSolve == FALSE & diffCoef<1000) {
-    
-    betaVec <- tempCoef[1:3]
-    alphaVec <- tempCoef[4:6]
+   
+		# assume that you put the spline cofficients last 
+    betaVec <- tempCoef[1:ncol(xMat)]
+    alphaVec <- tempCoef[(ncol(xMat)+1):length(tempCoef)]
     
     etaL <- ZL %*% alphaVec + xMat %*% betaVec
     etaR <- ZR %*% alphaVec + xMat %*% betaVec

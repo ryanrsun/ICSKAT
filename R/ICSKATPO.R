@@ -31,9 +31,10 @@
 #' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
 #'
 ICskatPO <- function(ZL, ZR, xMat, lt, rt, obs_ind, tpos_ind, gMat, nullCoef, Itt) {
-  
-  betaVec <- nullCoef[1:3]
-  alphaVec <- nullCoef[4:6]
+
+	# assume that you put the spline coefficients last  
+  betaVec <- nullCoef[1:ncol(xMat)]
+  alphaVec <- nullCoef[(ncol(xMat)+1):length(nullCoef)]
 
   # corrected
   etaL <- ZL %*% alphaVec + xMat %*% betaVec
