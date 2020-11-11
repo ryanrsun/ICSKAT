@@ -108,5 +108,5 @@ ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, r
     stopSolve <- ifelse(diffCoef < eps & sum(fullU^2) < length(fullU), TRUE, FALSE)
   }
   
-  return(list(beta_fit=tempCoef, iter=iter, Itt=fullImat))
+  return(list(nullCoef=tempCoef, iter=iter, Itt=fullImat))
 }
