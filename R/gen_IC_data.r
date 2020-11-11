@@ -1,7 +1,7 @@
 #' gen_IC_data.R
 #'
 #' Generate interval-censored data under the proportional odds/PH model given a baseline hazard function and
-#' some information about observation times. 
+#' some information about observation times.
 #'
 #' @param bhFunInv A function, the inverse of the baseline hazard function.
 #' @param obsTimes Vector of the intended observation times.
@@ -24,22 +24,29 @@
 #' etaVec <- xMat %*% betaVec
 #' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTimes = obsTimes, windowHalf = 0.25, etaVec = etaVec, n=n)
 #'
-gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, probMiss=0.1) {
-  
+gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", probMiss=0.1) {
+
   # sample size
   n <- length(etaVec)
-  
+
   # generate the exact times
   uVec <- runif(n=n, min=0, max=1)
-  tVec <- bhFunInv( -log(1 - uVec) / exp(etaVec) )
-  
+  if (mod == "PH") {
+      tVec <- bhFunInv( -log(1 - uVec) / exp(etaVec) )
+  } else if (mod == "PO") {
+      part1 <- rje::logit(uVec) - etaVec
+      tVec <- bhFunInv( -log(exp(-part1) / (1 + exp(-part1))) )
+  } else {
+      stop("Bad model")
+  }
+
   # there is a 10% chance of missing a visit
   nVisits <- length(obsTimes)
   madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=0.9), nrow=n, ncol=nVisits)
   # your visit is uniformly distributed around the intended obsTime, windowHalf on each side
   visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
                      MARGIN=2, STATS=obsTimes, FUN="+")
-  
+
   # get all visits for each subject
   allVisits <- madeVisit * visitTime
   # make the interval for each subject
@@ -48,7 +55,7 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, probMiss=0.1) {
   rightTimes <- allInts[, 2]
   # event time indicators
   deltaVec <- ifelse(rightTimes == 999, 0, 1)
-  
+
   # return
   return(list(deltaVec = deltaVec, tVec = tVec, leftTimes = leftTimes, rightTimes = rightTimes))
 }
@@ -85,6 +92,6 @@ createInt <- function(obsTimes, eventTime) {
   } else {
     maxTime <- orderedTimes[min(maxIdx)]
   }
-  
+
   return(c(minTime, maxTime))
 }
