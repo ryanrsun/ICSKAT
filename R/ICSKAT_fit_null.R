@@ -25,7 +25,7 @@
 #' ICSKAT_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat, lt=lt, rt=rt,
 #' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
 #'
-ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat, lt, rt, checkpoint=FALSE, eps=10^(-6)) {
+ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat, lt, rt, runOnce=FALSE, checkpoint=FALSE, eps=10^(-6)) {
 
     diff_beta <- 1
     iter <- 0
@@ -66,6 +66,7 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
         diff_beta <- (beta_new - temp_beta) %*% t(beta_new - temp_beta)
         temp_beta <- as.numeric(beta_new)
         iter <- iter + 1
+        if (runOnce) {break}
 	if(checkpoint) {cat("iter ", iter, "\n")}
     }
 
