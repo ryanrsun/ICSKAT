@@ -19,11 +19,13 @@
 #' rt <- lt + runif(n=100, min=0, max=5)
 #' make_IC_dmat(xMat=xMat, lt=lt, rt=rt)
 #'
-make_IC_dmat <- function(xMat, lt, rt, nknots=1) {
+make_IC_dmat <- function(xMat, lt, rt, quant_r=NULL, nknots=1) {
 
     # place the knots at equally spaced quantiles
     obs_ind <- as.numeric(rt < 999)
-    quant_r <- quantile(log(rt[obs_ind == 1]), probs=seq(from=0, to=1, length.out=nknots+2))
+    if (is.null(quant_r)) {
+        quant_r <- quantile(log(rt[obs_ind == 1]), probs=seq(from=0, to=1, length.out=nknots+2))
+    }
 
     # a0 and a1 are always there
     right_a0 <- 1
@@ -60,6 +62,6 @@ make_IC_dmat <- function(xMat, lt, rt, nknots=1) {
         left_dmat <- cbind(left_dmat, left_aj)
     }
 
-    return(list(right_dmat=right_dmat, left_dmat=left_dmat))
+    return(list(right_dmat=right_dmat, left_dmat=left_dmat, quant_r = quant_r))
 }
 
