@@ -42,7 +42,7 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
 
   # there is a 10% chance of missing a visit
   nVisits <- length(obsTimes)
-  madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=0.9), nrow=n, ncol=nVisits)
+  madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=(1 - probMiss)), nrow=n, ncol=nVisits)
   # your visit is uniformly distributed around the intended obsTime, windowHalf on each side
   visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
                      MARGIN=2, STATS=obsTimes, FUN="+")
@@ -57,7 +57,7 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
   deltaVec <- ifelse(rightTimes == 999, 0, 1)
 
   # return
-  return(list(deltaVec = deltaVec, tVec = tVec, leftTimes = leftTimes, rightTimes = rightTimes))
+  return(list(deltaVec = deltaVec, tVec = tVec, leftTimes = leftTimes, rightTimes = rightTimes, allVisits=allVisits))
 }
 
 #' Called by gen_IC_data() to turn the actual outcome times and observation times into interval-censored
