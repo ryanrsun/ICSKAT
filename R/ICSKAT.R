@@ -9,7 +9,8 @@
 #' @param gMat n*q genotype matrix.
 #' @param null_beta (p+nknots+2)*1 vector of coefficients for null model.
 #' @param Itt (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.
-#'
+#' @param Itt (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.
+#' @param pvalue Boolean, if TRUE then find the p-value (maybe don't need it if bootstrapping, saves eigendecomposition)
 #' @return A list with the elements:
 #' \item{p_SKAT}{ICSKAT p-value}
 #' \item{p_burden}{IC burden test p-value}
@@ -30,7 +31,7 @@
 #' tpos_ind = as.numeric(lt > 0), null_beta=null_fit$beta_fit, Itt=null_fit$Itt,
 #' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
 #'
-ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_beta, Itt) {
+ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_beta, Itt, pvalue=TRUE) {
 
   # Cumulative hazard under null
   H_L <- exp(left_dmat %*% null_beta)
@@ -56,6 +57,7 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
 	rm(Ug_sweep1)
 	rm(Ug_sweep2)
 	rm(Ug_sweepTerm)
+
 
 	# The Igg term
 	ggTerm1 <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A)
@@ -84,12 +86,19 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
   # we just need the Igg portion of the inverse
   sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
   skatQ <- t(Ugamma) %*% Ugamma
-  lambdaQ <- eigen(sig_mat)$values
-  p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
-
   burdenQ <- (sum(Ugamma))^2
-  B_burden= burdenQ / sum(sig_mat);
-  p_burden=1-pchisq(B_burden,df=1)
 
-  return(list(lambdaQ=lambdaQ, p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
+  if (pvalue) {
+    lambdaQ <- eigen(sig_mat)$values
+    p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
+    B_burden= burdenQ / sum(sig_mat);
+    p_burden=1-pchisq(B_burden,df=1)
+  } else {
+    pSKAT <- NA
+    lambdaQ <- 1
+    p_burden <- NA
+  }
+
+  return(list(lambdaQ=lambdaQ, p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, Ugamma=Ugamma,
+              burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
 }
