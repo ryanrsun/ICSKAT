@@ -2,9 +2,13 @@
 #'
 #' Calculate SKATO test for ICSKAT.
 #'
-#' @param icskatOut The output list from ICSKAT().
-#' @param liu Boolean for whether to use Liu moment matching approximation for p-value or Davies method.
 #' @param rhoVec Vector of rhos to search over.
+#' @param icskatOut The output list from ICSKAT().
+#' @param liu Boolean for whether to use Liu moment matching approximation for p-value of each Qrho (as opposed to Davies).
+#' @param liuIntegrate Boolean for whether to use Liu moment matching approximation integration in SKATO p-value (as opposed to Davies).
+#' @param kurtQvec Vector of kurtosis of Qrho, from bootstrapping.
+#' @param kurtKappa Kurtosis for first part of kappa term, from bootstrapping.
+#' @param alwaysCentral A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.
 #'
 #' @return A list with the elements:
 #' \item{pval}{SKATO p-value}
@@ -15,8 +19,9 @@
 #'
 #' @export
 #'
-ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1)) {
-  
+ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icskatOut,
+                    liu=TRUE, liuIntegrate=FALSE, kurtQvec=NULL, kurtKappa=NULL, alwaysCentral=FALSE) {
+
   # check the rhoVec
   largeRho <- which(rhoVec >= 1)
   if (length(largeRho) > 1) {
@@ -24,13 +29,8 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
   } else if (length(largeRho == 1)) {
     rhoVec[which(rhoVec >= 1)] <- 0.999
   }
-  
-  # get the Qrho, p-value of Qrho, its distribution parameters
-  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu)
- 	# sometimes numerically we just get weird things like only one eigenvalue
-	if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) } 
-  
-	# calculate the distribution of \kappa 
+
+	# calculate the distribution of \kappa
   # sometimes the machine precision is a little off so this matrix isn't symmetric even though it should be
   # (just numerical rounding errors)
   sig_mat <- icskatOut$sig_mat
@@ -45,31 +45,36 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
     oo <- order(attr(zPrelim, 'pivot'))
     zMat <- zPrelim[, oo]
   } else {zMat <- zPrelim}
-  
+
   # done with decomposing sig_mat
   zBar <- apply(zMat, 1, mean)
   #kappaSubtract <- zBar %*% t(zBar) %*% zMat / (sum(zBar^2))
   # faster, saves n^2 multiplications in getting kappaSubtract
   forDiag <- t(zBar) %*% zMat / sum(zBar^2)
-  kappaSubtract <- matrix(data=rep(zBar, p), ncol=p, byrow=FALSE) %*% diag(x = forDiag[1, ]) 
+  kappaSubtract <- matrix(data=rep(zBar, p), ncol=p, byrow=FALSE) %*% diag(x = forDiag[1, ])
   kappaHalf <- zMat - kappaSubtract
   kappaMat <- t(kappaHalf) %*% kappaHalf
-  
+
   # keep according to SKAT package procedure
-  kappaLambda <- eigen(kappaMat, symmetric = TRUE, only.values = TRUE)$values 
+  kappaLambda <- eigen(kappaMat, symmetric = TRUE, only.values = TRUE)$values
   idx1 <- which(kappaLambda >= 0)
   idx2 <- which(kappaLambda > mean(kappaLambda[idx1])/100000)
   if (length(idx2) < 1) {stop("Issue finding eigenvalues for kappa")}
   kappaLambda <- kappaLambda[idx2]
- 
-  # the moments of the kappa term 
+
+  # the moments of the kappa term
   muK1 <- sum(kappaLambda)
   sigmaZeta <- 2 * sqrt(sum(t(kappaHalf) %*% kappaHalf * t(kappaSubtract) %*% kappaSubtract))
   sigmaK1 <- sqrt(2 * sum(kappaLambda^2) + sigmaZeta^2)
- 	kurtK1 <- 12 * sum(kappaLambda^4) / (sum(kappaLambda^2))^2 
-	dfK1 <- 12 / kurtK1 
-	 
-	# the \tau(\rho) value that varies with rho
+  # either use bootstrapped kurtosis calculation or calulation from eigenvalues
+  if (is.null(kurtKappa)) {
+    kurtK1 <- 12 * sum(kappaLambda^4) / (sum(kappaLambda^2))^2
+  } else {
+    kurtK1 <- kurtKappa
+  }
+  dfK1 <- 12 / kurtK1
+
+  # the \tau(\rho) value that varies with rho - need this before kappa in case kappa
   tauVec <- rep(NA, length(rhoVec))
   for (rho_it in 1:length(rhoVec)) {
     tempRho <- rhoVec[rho_it]
@@ -77,14 +82,19 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
     term1 <- p^2 * tempRho + sum(forDiag[1, ]^2) * (1 - tempRho)
     tauVec[rho_it] <- sum(term1) * sum(zBar^2)
   }
-  
+
+  # get the Qrho, p-value of Qrho, its distribution parameters
+  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu, kurtQvec=kurtQvec,
+                   tauVec = tauVec, alwaysCentral=alwaysCentral)
+  # sometimes numerically we just get weird things like only one eigenvalue
+  if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
+
   # T statistic
   if (liu) {
-    Tstat <- min(QrhoDF$liuPval)
-  } else {
-    Tstat <- min(QrhoDF$daviesPval)
-  }
-  
+    pRhoVec <- QrhoDF$liuPval
+  } else {pRhoVec <- QrhoDF$daviesPval}
+  Tstat <- min(pRhoVec)
+
   # need to find qmin(rhov) for all rhov
   qMinVec <- rep(NA, length(rhoVec))
   for (rho_it in 1:length(rhoVec)) {
@@ -93,34 +103,59 @@ ICSKATO <- function(icskatOut, liu=TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5
     tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$df[rho_it])
     #muX <- liuDF$delta[rho_it] + liuDF$df[rho_it]
     muX <- QrhoDF$df[rho_it]
-    #sigmaX <- sqrt(2 * liuDF$df[rho_it] + 4 * liuDF$delta[rho_it]) 
-    sigmaX <- sqrt(2 * QrhoDF$df[rho_it]) 
-    qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrho[rho_it] / sigmaX) + QrhoDF$muQrho[rho_it] 
+    #sigmaX <- sqrt(2 * liuDF$df[rho_it] + 4 * liuDF$delta[rho_it])
+    sigmaX <- sqrt(2 * QrhoDF$df[rho_it])
+    qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrho[rho_it] / sigmaX) + QrhoDF$muQrho[rho_it]
   }
-  
+
   # append to QrhoDF
   QrhoDF <- QrhoDF %>% mutate(rhoVec = rhoVec, tauVec = tauVec, qMinVec = qMinVec)
-  
+
   # integrate
-	# sometimes the CompQuadForm has numerical issues
-  intOut <-  tryCatch(integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000, 
-		muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, abs.tol = 10^(-25)), error=function(e) e)
-	intDavies <- TRUE	
-	if (class(intOut)[1] == "simpleError") {
-		intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
-			muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
-		intDavies <- FALSE	
-	}
+  if (liuIntegrate) {
+    intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+                                 muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
+    intDavies <- FALSE
+  } else {
+    intOut <-  tryCatch(integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000,
+                                  muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, abs.tol = 10^(-25)), error=function(e) e)
+    intDavies <- TRUE
+    # sometimes the CompQuadForm has numerical issues
+    if (class(intOut)[1] == "simpleError") {
+      intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+                                   muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
+      intDavies <- FALSE
+    }
+  }
 
 	# sometimes even the liu integration doesn't work
 	if (class(intOut)[1] == "simpleError") {
 		return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=1))
 	}
 
-	# final ICSKATO p-value
+	# ICSKATO p-value
 	skatoPval <- 1 - intOut[1]$value
 
+	# SKATO package performs this check as well
+	# According to their logic, since SKAT-O is between burden and SKAT,
+	# SKAT-O p-value should be <= min(p-values) * 2.
+	# To correct conservatively, we use min(p-values) * 3 when number(r.all) >= 3.
+	# See SKAT_Optimal_Get_Pvalue_VarMatching() in SKAT_Optimal_VarMatching.R.
+	multi <- ifelse(rhoVec < 3, 2, 3)
+	posPval <- which(pRhoVec > 0)
+	# need correction
+	if (skatoPval <= 0) {
+	  # same corrections as SKAT package
+	  if (length(posPval) < length(rhoVec) & length(posPval) > 0) {
+	    correctedP <- min(pRhoVec[posPval])[1]
+	  } else if (length(posPval) == length(rhoVec)) {
+	    correctedP <- multi * min(pRhoVec[posPval])[1]
+	  } else {
+	    correctedP <- skatoPval
+	  }
+	} else {correctedP <- skatoPval}
+
   # return
-  return(list(pval = skatoPval, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=0))
+  return(list(pval = skatoPval, correctedP = correctedP, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=0))
 }
 
