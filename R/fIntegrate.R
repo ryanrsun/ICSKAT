@@ -26,27 +26,28 @@
 #' fIntegrate(x=1, muK1=10, sigmaK1=2, sigmaZeta=2, kappaLambda = rep(1, 10), QrhoDF=QrhoDF)
 #'
 fIntegrate <- function(x, muK1, sigmaK1, sigmaZeta, kappaLambda, QrhoDF, l=NULL, delta=NULL) {
-  
+
   # needs to be able to take vectorized x
   nr <- nrow(QrhoDF)
   nx <- length(x)
   tauX <- QrhoDF$tauVec %*% t(x)
   allChoiceMat <- (QrhoDF$qMinVec - tauX) / (1 - QrhoDF$rhoVec)
   minVec <- apply(allChoiceMat, 2, min)
-  
+
   # loop
   retVec <- rep(0, nx)
   for (i in 1:nx) {
     tempMin <- minVec[i]
-    
+
     if(tempMin > sum(kappaLambda) * 10^4){
       tempQuantile <- 0
     } else {
+      # the davies deltaX is different from the liu deltaX, this is normal.
       deltaX <- (tempMin - muK1) * sqrt(sigmaK1^2 - sigmaZeta^2) / sigmaK1 + muK1
       daviesOutput <- CompQuadForm::davies(q=deltaX, lambda=kappaLambda, acc=10^(-6))
       Sx <- daviesOutput$Qq
       if (daviesOutput$ifault != 0) {stop("daviesOutput$ifault is not 0")}
-      
+
       if (Sx > 1) {Sx <- 1}
     }
     retVec[i]<-(1-Sx) * dchisq(x[i],df=1, ncp=0)
