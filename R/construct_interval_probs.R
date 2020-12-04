@@ -13,6 +13,9 @@
 #'
 construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
 
+  # sort the visit times, we used 0 for missing
+  allTimes <- apply(allTimes, 1, sort)
+
   # holds the fitted null survival for each visit time
   fittedSurv <- matrix(data=NA, nrow=n, ncol=ncol(allTimes))
   # holds the probability of falling into each interval
