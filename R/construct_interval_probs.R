@@ -19,7 +19,8 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
     zeroIdx <- which(allTimes[, col_it] == 0)
     if (length(zeroIdx) > 0) {allTimes[zeroIdx, col_it] <- NA}
   }
-  allTimes[, 2:ncol(allTimes)] <- t(apply(allTimes[, 2:ncol(allTimes)] , 1, zoo::na.locf))
+  filledTimes <- t(apply(allTimes, 1, na.locf))
+  allTimes[, 2:ncol(allTimes)] <- filledTimes[, 2:ncol(filledTimes)]
 
   # holds the fitted null survival for each visit time
   fittedSurv <- matrix(data=NA, nrow=n, ncol=ncol(allTimes))
