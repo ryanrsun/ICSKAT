@@ -8,6 +8,7 @@
 #' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
 #' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
 #' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param runOnce Boolean tells the function to just go through the loop once instead of converging (to get quantites for bootstrapping).
 #' @param eps Stop when the L2 norm of the difference in model coefficients reaches this limit.
 #' @param checkpoint Boolean tells the function to print when each iteration completes.
 #'
@@ -57,7 +58,7 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
         I_term2 <- crossprod(right_dmat, sweep(right_dmat, 1, obs_ind * as.numeric(check_Iterm2 / A), FUN="*"))
         check_tempterm <- (H_R * exp(-H_R))
         check_tempterm[which(is.nan(check_tempterm))] <- 0
-	temp_term <- sweep(t(left_dmat), 2, tpos_ind * as.numeric((H_L * exp(-H_L)) / A), FUN="*") - 
+	temp_term <- sweep(t(left_dmat), 2, tpos_ind * as.numeric((H_L * exp(-H_L)) / A), FUN="*") -
 	sweep(t(right_dmat), 2, obs_ind * as.numeric(check_tempterm / A), FUN="*")
         I_term3 <- temp_term %*% t(temp_term)
         iMat <- I_term1 + I_term2  - I_term3
