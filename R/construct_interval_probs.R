@@ -13,8 +13,13 @@
 #'
 construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
 
-  # sort the visit times, we used 0 for missing
-  allTimes <- t(apply(allTimes, 1, sort))
+  # replace the 0s with NAs, then apply na.locf() to fill the missing visits with the last visit time
+  # don't have to do this for the first column, because 0 in the first column will naturally just give 0 probability
+  for (col_it in 2:ncol(allTimes)) {
+    zeroIdx <- which(allTimes[, col_it] == 0)
+    if (length(zeroIdx) > 0) {allTimes[zeroIdx, col_it] <- NA}
+  }
+  allTimes[, 2:ncol(allTimes)] <- t(apply(allTimes[, 2:ncol(allTimes)] , 1, zoo::na.locf))
 
   # holds the fitted null survival for each visit time
   fittedSurv <- matrix(data=NA, nrow=n, ncol=ncol(allTimes))
@@ -36,8 +41,11 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
     # total baseline hazard
     tempH <- exp(tempDmat$left_dmat %*% as.numeric(null_fit$beta_fit[(p+1):(p+nKnots+2)])) * covariateH
 
-    # survival
-    fittedSurv[, time_it] <- exp(-tempH)
+    # there can be time 0, in that case manually fix to survival = 1
+    fittedSurv[, time_it] <- ifelse(allVisits[, time_it] == 0, 1, exp(-tempH))
+    # if there is time 999, then that survival is 0
+    fittedSurv[, time_it] <- ifelse(allVisits[, time_it] == 999, 1, fittedSurv[, time_it])
+
     # prob of falling in interval
     if (time_it == 1) {
       probVec <- 1 - fittedSurv[, time_it]
