@@ -25,7 +25,7 @@
 #' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
 #' QrhoIC(rhoVec = seq(from=0, to=1, by=0.1), icskatOut = myoutput)
 #'
-QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, kurtQvec=NULL, sigmaZeta=NULL, alwaysCentral=FALSE) {
+QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, kurtQvec=NULL, sigmaZeta=NULL, tauVec=NULL, alwaysCentral=FALSE) {
   nRho <- length(rhoVec)
 	p <- nrow(icskatOut$sig_mat)
 
