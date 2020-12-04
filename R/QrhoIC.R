@@ -3,9 +3,12 @@
 #' Calculate the test statistic, distribution, and p-value for each value of Krho in SKATO.
 #'
 #' @param rhoVec Numeric vector of the rho values to use in SKATO.
-#' @param null_beta The output (a list) from a call to the ICSKAT() function. 
-#' @param Itt Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values.
-#'
+#' @param null_beta The output (a list) from a call to the ICSKAT() function.
+#' @param liu Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values.
+#' @param kurtQvec Vector of kurtosis of Qrho, from bootstrapping.
+#' @param sigmaZeta Standard deviation of zeta term, needed if using kurtosis from bootstrapping.
+#' @param tauVec Vector of tau(rho) terms, needed if using kurtosis from bootstrapping.
+#' @param alwaysCentral A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.
 #' @return Data frame holding the pvalue + test statistic for each fixed rho, the matched noncentrality + degree of freedom parameters
 #' according to the Liu method, and the mean and variance of each Qrho.
 #'
@@ -22,14 +25,15 @@
 #' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
 #' QrhoIC(rhoVec = seq(from=0, to=1, by=0.1), icskatOut = myoutput)
 #'
-QrhoIC <- function(rhoVec, icskatOut, liu=TRUE) {
+QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, kurtQvec=NULL, sigmaZeta=NULL, alwaysCentral=FALSE) {
   nRho <- length(rhoVec)
 	p <- nrow(icskatOut$sig_mat)
- 
+
   # this DF will also hold the Davies p-value and Qrho for each rho
   # in addition to the liu p-value and moment-matching parameters
-  liuDF <- data.frame(liuPval = rep(NA, length(rhoVec)), delta=NA, df=NA, muQrho = NA, sigmaQrho = NA, daviesPval=NA, Qrho=NA)
-  
+  liuDF <- data.frame(liuPval = rep(NA, length(rhoVec)), delta=NA, df=NA, muQrho = NA,
+                      sigmaQrho = NA, daviesPval=NA, Qrho=NA, alwaysCentral=alwaysCentral)
+
   # there should only be a few rho, so ok to use a for loop
   for (rho_it in 1:nRho) {
     tempRho <- rhoVec[rho_it]
@@ -43,32 +47,46 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE) {
     toDecomp <- eigenMapMatMultCrossTwo(Rrho, icskatOut$sig_mat)
     Aeigen <- eigen(toDecomp, symmetric = TRUE, only.values = TRUE)
     tempLambda <- Aeigen$values
-  
+
 		# so many weird things can happen with the eigenvalues
 		idx1 <- which(tempLambda >= 0)
 	  idx2 <- which(tempLambda > mean(tempLambda[idx1])/100000)
   	if (length(idx2) <= 1) {return(-1)}
 		tempLambda <- tempLambda[idx2]
- 		 
+
 		# liu moment matching to get the distribution
-    liuMatch <- chiSqMatchFast(lambdaVec = tempLambda)
+    liuMatch <- chiSqMatchFast(lambdaVec = tempLambda, alwaysCentral=alwaysCentral)
    	if (class(liuMatch)[1] == "numeric") {return(-1)}
- 
+
     # SKATO uses liu by default
     if (liu) {
-      # could comment out the p-value since we dont ever use it again - also, should I ignore the delta and set it to 0 always?
-      liuDF$liuPval[rho_it] <- pchisq(q = (liuDF$Qrho[rho_it] - liuMatch$muQrho) / liuMatch$sigmaQrho * sqrt(2 * liuMatch$l + 4 * liuMatch$delta) + liuMatch$l + liuMatch$delta,
-                                      df = liuMatch$l, ncp=liuMatch$delta, lower.tail=F)
+      # use kurtosis from eigenvalues or from bootstrapping
+      if (is.null(kurtQvec)) {
+        tempDF <- liuMatch$l
+      } else {
+        tempKurt <- mixture_kurtosis(tempDF1 = kurtQvec[rho_it], tempDF2 = 1,
+                                     v1 = liuMatch$sigmaQrho^2 + sigmaZeta^2,
+                                     a1 = 1 - tempRho, a2 = tauVec[rho_it])
+        tempDF <- 12 / tempKurt
+      }
+
+      # the minimum of these p-values is the test statistic.
+      # also, should I ignore the delta and set it to 0 always?
+      # if so, should actually change thsi in chiSqMatchFast so that it always returns 0 for delta,
+      # that will do it more cleanly.
+      liuDF$liuPval[rho_it] <- pchisq(q = (liuDF$Qrho[rho_it] - liuMatch$muQrho) / liuMatch$sigmaQrho * sqrt(2 * tempDF + 4 * liuMatch$delta) + tempDF + liuMatch$delta,
+                                      df = tempDF, ncp=liuMatch$delta, lower.tail=F)
     } else {
       # p-value of Qrho
       liuDF$daviesPval[rho_it] <- CompQuadForm::davies(q=liuDF$Qrho[rho_it], lambda=tempLambda)$Qq
+      tempDF <- liuMatch$l
     }
-    
+
     liuDF$muQrho[rho_it] <- liuMatch$muQrho
     liuDF$sigmaQrho[rho_it] <- liuMatch$sigmaQrho
-    liuDF$df[rho_it] <- liuMatch$l
+    liuDF$df[rho_it] <- tempDF
     liuDF$delta[rho_it] <- liuMatch$delta
-    
+
     #cat(rho_it)
   }
   return(liuDF)
