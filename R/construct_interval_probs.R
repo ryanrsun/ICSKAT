@@ -11,7 +11,7 @@
 #'
 #' @export
 #'
-construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots, quant_r) {
+construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
 
   # sort the visit times, we used 0 for missing
   allTimes <- t(apply(allTimes, 1, sort))
@@ -22,6 +22,9 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots, quant
   probMat <- matrix(data=NA, nrow=n, ncol=ncol(fittedSurv) + 1)
   # covariate adjustment to baseline hazard
   covariateH <- exp(dmats$left_dmat[, 1:p] %*% as.numeric(nullBeta[1:p]))
+
+  # need to set the quantiles to be the same so we get the same design matrix if we're using the same null model!
+  quant_r <- dmats$quant_r
 
   # loop through and fill probabilities of each interval
   for (time_it in 1:ncol(fittedSurv)) {
