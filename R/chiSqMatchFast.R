@@ -26,27 +26,27 @@
 #' toDecomp <- Rrho %*% icskatOut$sig_mat
 #' Aeigen <- eigen(toDecomp, symmetric = TRUE, only.values = TRUE)
 #' tempLambda <- Aeigen$values
-#' chiSqMatchFast(lambdaVec = tempLambda) 
+#' chiSqMatchFast(lambdaVec = tempLambda)
 #'
-chiSqMatchFast <- function(lambdaVec) {
+chiSqMatchFast <- function(lambdaVec, alwaysCentral=FALSE) {
   c1 <- sum(lambdaVec)
-  c2 <- sum(lambdaVec^2) 
-  c3 <- sum(lambdaVec^3) 
-  c4 <- sum(lambdaVec^4) 
+  c2 <- sum(lambdaVec^2)
+  c3 <- sum(lambdaVec^3)
+  c4 <- sum(lambdaVec^4)
   muQrho <- c1
   sigmaQrho <- sqrt(2 * c2)
   s1 <- c3 / c2^(1.5)
   s2 <- c4 / c2^2
  	# sometimes the eigenvalues are so small, c2 is too small and s2 is NaN
 	if (is.na(s2)) {return(-1)}
- 
-	if (s1^2 > s2) {
+
+  if (alwaysCentral | s2 >= s1^2) {
+    delta <- 0
+    l <- 1 / s2
+  } else {
     a <- 1 / (s1 - sqrt(s1^2 - s2))
     delta <- s1 * a^3 - a^2
     l <- a^2 - 2 * delta
-  } else {
-    delta <- 0
-    l <- 1 / s2
   }
   return(list(sigmaQrho = sigmaQrho, muQrho = muQrho, delta = delta, l = l))
 }
