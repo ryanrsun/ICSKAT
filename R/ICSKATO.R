@@ -84,7 +84,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
   }
 
   # get the Qrho, p-value of Qrho, its distribution parameters
-  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu, kurtQvec=kurtQvec,
+  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu, kurtQvec=kurtQvec, sigmaZeta = sigmaZeta,
                    tauVec = tauVec, alwaysCentral=alwaysCentral)
   # sometimes numerically we just get weird things like only one eigenvalue
   if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
