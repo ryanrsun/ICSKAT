@@ -63,10 +63,11 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, kurtQvec=NULL, sigmaZeta=NULL, t
       # use kurtosis from eigenvalues or from bootstrapping
       if (is.null(kurtQvec)) {
         tempDF <- liuMatch$l
+        tempDelta <- liuMatch$delta
       } else {
-        tempKurt <- mixture_kurtosis(tempDF1 = kurtQvec[rho_it], tempDF2 = 1,
-                                     v1 = liuMatch$sigmaQrho^2 + sigmaZeta^2,
-                                     a1 = 1 - tempRho, a2 = tauVec[rho_it])
+        tempDelta <- 0
+        tempKurt <- kurtQvec[rho_it]
+        if (tempKurt <= 0) {tempKurt <- 1e-3}
         tempDF <- 12 / tempKurt
       }
 
@@ -74,7 +75,7 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, kurtQvec=NULL, sigmaZeta=NULL, t
       # also, should I ignore the delta and set it to 0 always?
       # if so, should actually change thsi in chiSqMatchFast so that it always returns 0 for delta,
       # that will do it more cleanly.
-      liuDF$liuPval[rho_it] <- pchisq(q = (liuDF$Qrho[rho_it] - liuMatch$muQrho) / liuMatch$sigmaQrho * sqrt(2 * tempDF + 4 * liuMatch$delta) + tempDF + liuMatch$delta,
+      liuDF$liuPval[rho_it] <- pchisq(q = (liuDF$Qrho[rho_it] - liuMatch$muQrho) / liuMatch$sigmaQrho * sqrt(2 * tempDF + 4 * tempDelta) + tempDF + tempDelta,
                                       df = tempDF, ncp=liuMatch$delta, lower.tail=F)
     } else {
       # p-value of Qrho
