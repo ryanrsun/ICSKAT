@@ -36,16 +36,16 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
   for (time_it in 1:ncol(fittedSurv)) {
 
     # make design matrix
-    tempDmat <- make_IC_dmat(xMat=NULL, lt=outcomeDat$allVisits[, time_it],
-                               rt=outcomeDat$allVisits[, time_it], quant_r=quant_r)
+    tempDmat <- make_IC_dmat(xMat=NULL, lt=allTimes[, time_it],
+                               rt=allTimes[, time_it], quant_r=quant_r)
 
     # total baseline hazard
     tempH <- exp(tempDmat$left_dmat %*% as.numeric(null_fit$beta_fit[(p+1):(p+nKnots+2)])) * covariateH
 
     # there can be time 0, in that case manually fix to survival = 1
-    fittedSurv[, time_it] <- ifelse(allVisits[, time_it] == 0, 1, exp(-tempH))
+    fittedSurv[, time_it] <- ifelse(allTimes[, time_it] == 0, 1, exp(-tempH))
     # if there is time 999, then that survival is 0
-    fittedSurv[, time_it] <- ifelse(allVisits[, time_it] == 999, 1, fittedSurv[, time_it])
+    fittedSurv[, time_it] <- ifelse(allTimes[, time_it] == 999, 0, fittedSurv[, time_it])
 
     # prob of falling in interval
     if (time_it == 1) {
@@ -69,6 +69,6 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
   probMat[, ncol(probMat)] <- probVec
 
   # return
-  return(probMat)
+  return(list(probMat = probMat, allTimesFilled = allTimes))
 }
 
