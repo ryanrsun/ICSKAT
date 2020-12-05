@@ -19,7 +19,7 @@
 #'
 #' @export
 #'
-ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icskatOut,
+ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icskatOut, useMixtureKurt = FALSE,
                     liu=TRUE, liuIntegrate=FALSE, kurtQvec=NULL, kurtKappa=NULL, alwaysCentral=FALSE) {
 
   # check the rhoVec
@@ -98,18 +98,23 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
   # need to find qmin(rhov) for all rhov
   qMinVec <- rep(NA, length(rhoVec))
   for (rho_it in 1:length(rhoVec)) {
-    v1 <- QrhoDF$sigmaQrho[rho_it]^2 + sigmaZeta^2
-    rhoKurt <- mixture_kurtosis(tempDF1 = kurtKappa, tempDF2 = 1, v1=1, a1 = 1 - rhoVec[rho_it],
-                                a2 = QrhoDF$tauVec[rho_it])
-    rhoDF <- 12 / rhoKurt
-    muX <- rhoDF
-    sigmaX <- sqrt(2 * rhoDF)
-    # as I've commented out below, we could just use the kurtosis from bootstrapping each Qrho, as
+
+    # it's not clear why when we do bootstrapping, we can't just use the kurtosis from bootstrapping each Qrho, as
     # we did to find the original p-values for each Qrho, but here the SKAT package uses the mixture method
-    # for whatever reason.
-    #tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$df[rho_it])
-    #muX <- QrhoDF$df[rho_it]
-    #sigmaX <- sqrt(2 * QrhoDF$df[rho_it])
+    # for whatever reason for the bootstrap case (see else part).
+    if (is.null(kurtKappa) | !useMixtureKurt) {
+      tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$df[rho_it])
+      muX <- QrhoDF$df[rho_it]
+      sigmaX <- sqrt(2 * QrhoDF$df[rho_it])
+    } else {
+      tempv1 <- QrhoDF$sigmaQrho[rho_it]^2 + sigmaZeta^2
+      rhoKurt <- mixture_kurtosis(tempDF1 = kurtKappa, tempDF2 = 1, v1 = tempv1, a1 = 1 - rhoVec[rho_it],
+                                  a2 = tauVec[rho_it])
+      rhoDF <- 12 / rhoKurt
+      tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = rhoDF)
+      muX <- rhoDF
+      sigmaX <- sqrt(2 * rhoDF)
+    }
 
     qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrho[rho_it] / sigmaX) + QrhoDF$muQrho[rho_it]
   }
