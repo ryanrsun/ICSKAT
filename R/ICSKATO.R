@@ -98,13 +98,19 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
   # need to find qmin(rhov) for all rhov
   qMinVec <- rep(NA, length(rhoVec))
   for (rho_it in 1:length(rhoVec)) {
-    # the SKAT package seems to ignore the matched value of \delta, just always set it to 0
-    #tempQ <- qchisq(p = 1 - Tstat, ncp = liuDF$delta[rho_it], df = liuDF$df[rho_it])
-    tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$df[rho_it])
-    #muX <- liuDF$delta[rho_it] + liuDF$df[rho_it]
-    muX <- QrhoDF$df[rho_it]
-    #sigmaX <- sqrt(2 * liuDF$df[rho_it] + 4 * liuDF$delta[rho_it])
-    sigmaX <- sqrt(2 * QrhoDF$df[rho_it])
+    v1 <- QrhoDF$sigmaQrho[rho_it]^2 + sigmaZeta^2
+    rhoKurt <- mixture_kurtosis(tempDF1 = kurtKappa, tempDF2 = 1, v1=1, a1 = 1 - rhoVec[rho_it],
+                                a2 = QrhoDF$tauVec[rho_it])
+    rhoDF <- 12 / rhoKurt
+    muX <- rhoDF
+    sigmaX <- sqrt(2 * rhoDF)
+    # as I've commented out below, we could just use the kurtosis from bootstrapping each Qrho, as
+    # we did to find the original p-values for each Qrho, but here the SKAT package uses the mixture method
+    # for whatever reason.
+    #tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$df[rho_it])
+    #muX <- QrhoDF$df[rho_it]
+    #sigmaX <- sqrt(2 * QrhoDF$df[rho_it])
+
     qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrho[rho_it] / sigmaX) + QrhoDF$muQrho[rho_it]
   }
 
