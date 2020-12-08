@@ -175,6 +175,6 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
   # return
   return(list(pval = skatoPval, correctedP = correctedP, QrhoDF=QrhoDF, r=r,
               intDavies = intDavies, err=0,  lambdaKurtK1 = lambdaKurtK1,
-              bootKurtK1 = bootKurtK1, mixDFVec = mixDFVec, QrhoDF = QrhoDF$df))
+              bootKurtK1 = bootKurtK1, mixDFVec = mixDFVec))
 }
 
