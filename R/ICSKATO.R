@@ -72,6 +72,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
     kurtK1 <- lambdaKurtK1
     bootKurtK1 <- NA
   } else {
+    if (kurtKappa <= 0) {kurtKappa <- 0.001}
     bootKurtK1 <- kurtKappa
     kurtK1 <- bootKurtK1
   }
