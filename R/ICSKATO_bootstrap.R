@@ -24,7 +24,7 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r,
 
   # bootstrap
   # really the only quantity we need is kappa and QrhoBoot
-  bootDF <- data.frame(mu=rep(NA, B), sigma=NA, testStat=NA, pSKAT=NA, kappa=NA)
+  bootDF <- data.frame(mu=rep(NA, B), sigma=NA, testStat=NA, pSKAT=NA, kappa=NA, kappaAll=NA)
   QrhoBoot <- matrix(data=NA, nrow=B, ncol=7)
   for (boot_it in 1:B) {
 
@@ -83,6 +83,7 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r,
     kappaVec <- t(as.numeric(bootSKAT$Ugamma)) -
       t(as.numeric(bootSKAT$Ugamma))  %*% kappaPortion
     bootDF$kappa[boot_it] <- sum(kappaVec^2)
+    bootDF$kappaAll[boot_it] <- bootDF$kappa[boot_it] + 2 * sum(kappaVec * kappaPortion)
     QrhoBoot[boot_it, ] <-  (1 - rhoVec) * as.numeric(bootSKAT$skatQ) +
       rhoVec * as.numeric(bootSKAT$burdenQ)
 
@@ -97,8 +98,9 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r,
     kurtQvec[i] <- mean((QrhoBoot[, i] - mean(QrhoBoot[, i]))^4) / mean((QrhoBoot[, i] - mean(QrhoBoot[, i]))^2)^2 - 3
   }
   kurtKappa <- mean( (bootDF$kappa - mean(bootDF$kappa))^4 ) / mean( (bootDF$kappa - mean(bootDF$kappa))^2 )^2 - 3
+  kurtKappaAll <- mean( (bootDF$kappaAll - mean(bootDF$kappaAll))^4 ) / mean( (bootDF$kappaAll - mean(bootDF$kappaAll))^2 )^2 - 3
 
   # return
-  return(list(kurtQvec = kurtQvec, kurtKappa = kurtKappa, bootDF = bootDF, QrhoBoot = QrhoBoot))
+  return(list(kurtQvec = kurtQvec, kurtKappa = kurtKappa, kurtKappaAll = kurtKappaAll, bootDF = bootDF, QrhoBoot = QrhoBoot))
 }
 
