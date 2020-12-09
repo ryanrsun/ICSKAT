@@ -80,10 +80,11 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r,
     # it turns out the kappa part can be calculated with just sig_mat and the Ugamma
     kappaPortion <- matrix(data=rep(colSums(bootSKAT$sig_mat), ncol(bootSKAT$sig_mat)), nrow=ncol(bootSKAT$sig_mat), byrow=TRUE) /
       sum(bootSKAT$sig_mat)
+    UgammaKappa <- t(as.numeric(bootSKAT$Ugamma))  %*% kappaPortion
     kappaVec <- t(as.numeric(bootSKAT$Ugamma)) -
-      t(as.numeric(bootSKAT$Ugamma))  %*% kappaPortion
+      UgammaKappa
     bootDF$kappa[boot_it] <- sum(kappaVec^2)
-    bootDF$kappaAll[boot_it] <- bootDF$kappa[boot_it] + 2 * sum(kappaVec * kappaPortion)
+    bootDF$kappaAll[boot_it] <- bootDF$kappa[boot_it] + 2 * sum(kappaVec * UgammaKappa)
     QrhoBoot[boot_it, ] <-  (1 - rhoVec) * as.numeric(bootSKAT$skatQ) +
       rhoVec * as.numeric(bootSKAT$burdenQ)
 
