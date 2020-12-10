@@ -20,7 +20,21 @@
 #' @export
 #'
 ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icskatOut, useMixtureKurt = FALSE,
-                    liu=TRUE, liuIntegrate=FALSE, kurtQvec=NULL, kurtKappa=NULL, alwaysCentral=FALSE) {
+                    liu=TRUE, liuIntegrate=FALSE, bootstrapOut = NULL,  alwaysCentral=FALSE) {
+
+  if (!is.null(bootstrapOut)) {
+    kurtQvec = bootstrapOut$kurtQvec
+    varQvec = bootstrapOut$varQvec
+    meanQvec = bootstrapOut$meanQvec
+    kurtKappa = bootstrapOut$kurtKappa
+    kurtKappaAll = bootstrapOut$kurtKappaAll
+    varKappaAll = bootstrapOut$varKappaAll
+    sigmaKappaAll = bootstrapOut$varKappaAll
+    meanKappaAll = bootstrapOut$meanKappaAll
+  } else {
+    kurtQvec <- NA; varQvec <- NA; meanQvec <- NA; kurtKappa <- NA;
+    kurtKappaAll <- NA; varKappaAll <- NA; sigmaKappaAll <- NA; meanKappaAll <- NA
+  }
 
   # check the rhoVec
   largeRho <- which(rhoVec >= 1)
@@ -63,18 +77,18 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
   kappaLambda <- kappaLambda[idx2]
 
   # the moments of the kappa term
-  muK1 <- sum(kappaLambda)
+  lambdaMuK1 <-sum(kappaLambda)
   sigmaZeta <- 2 * sqrt(sum(t(kappaHalf) %*% kappaHalf * t(kappaSubtract) %*% kappaSubtract))
-  sigmaK1 <- sqrt(2 * sum(kappaLambda^2) + sigmaZeta^2)
+  lambdaSigmaK1 <- sqrt(2 * sum(kappaLambda^2) + sigmaZeta^2)
   lambdaKurtK1 <- 12 * sum(kappaLambda^4) / (sum(kappaLambda^2))^2
-  # either use bootstrapped kurtosis calculation or calulation from eigenvalues
-  if (is.null(kurtKappa)) {
+  if (is.null(bootstrapOut)) {
+    muK1 <- lambdaMuK1
+    sigmaK1 <- lambdaSigmaK1
     kurtK1 <- lambdaKurtK1
-    bootKurtK1 <- NA
-  } else {
-    if (kurtKappa <= 0) {kurtKappa <- 0.001}
-    bootKurtK1 <- kurtKappa
-    kurtK1 <- bootKurtK1
+  } else {  # if bootstrap available, always use those for moments
+    muK1 <- meanKappaAll
+    sigmaK1 <- sqrt(varKappaAll)
+    kurtK1 <- kurtKappaAll
   }
   dfK1 <- 12 / kurtK1
 
@@ -107,11 +121,18 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
     # it's not clear why when we do bootstrapping, we can't just use the kurtosis from bootstrapping each Qrho, as
     # we did to find the original p-values for each Qrho, but here the SKAT package uses the mixture method
     # for whatever reason for the bootstrap case (see else part).
-    if (is.null(kurtKappa) | !useMixtureKurt) {
-      tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$df[rho_it])
-      muX <- QrhoDF$df[rho_it]
-      sigmaX <- sqrt(2 * QrhoDF$df[rho_it])
-    } else {
+    if (is.null(bootstrapOut) | !useMixtureKurt) {
+      # no bootstrap, use eigenvalues
+      if (is.null(bootstrapOut)) {
+        tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$dfLambda[rho_it])
+        muX <- QrhoDF$dfLambda[rho_it]
+        sigmaX <- sqrt(2 * QrhoDF$dfLambda[rho_it])
+      } else { # bootstrap available
+        tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$dfBoot[rho_it])
+        muX <- QrhoDF$dfBoot[rho_it]
+        sigmaX <- sqrt(2 * QrhoDF$dfBoot[rho_it])
+      }
+    } else {  # mixture requires bootstrap
       tempv1 <- QrhoDF$sigmaQrho[rho_it]^2 + sigmaZeta^2
       mixKurt <- mixture_kurtosis(tempDF1 = kurtKappa, tempDF2 = 1, v1 = tempv1, a1 = 1 - rhoVec[rho_it],
                                   a2 = tauVec[rho_it])
@@ -122,7 +143,12 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
       sigmaX <- sqrt(2 * mixDF)
     }
 
-    qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrho[rho_it] / sigmaX) + QrhoDF$muQrho[rho_it]
+    # if bootstrap mean and variance are there, use it
+    if (is.null(bootstrapOut)) {
+      qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrho[rho_it] / sigmaX) + QrhoDF$muQrho[rho_it]
+    } else {
+      qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoBoot[rho_it] / sigmaX) + QrhoDF$muQrhoBoot[rho_it]
+    }
   }
 
   # append to QrhoDF
@@ -174,7 +200,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
 
   # return
   return(list(pval = skatoPval, correctedP = correctedP, QrhoDF=QrhoDF, r=r,
-              intDavies = intDavies, err=0,  lambdaKurtK1 = lambdaKurtK1,
-              bootKurtK1 = bootKurtK1, mixDFVec = mixDFVec))
+              intDavies = intDavies, err=0,  lambdaKurtK1 = lambdaKurtK1, lambdaSigmaK1 = lambdaSigmaK1,
+              lambdaMuK1 = lambdaMuK1, bootKurtKappaAll = kurtKappaAll, bootSigmaKappaAll = sigmaKappaAll,
+              bootMuKappaAll = meanKappaAll, mixDFVec = mixDFVec))
 }
-
