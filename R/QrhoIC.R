@@ -74,8 +74,8 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, sigmaZeta=NUL
         tempKurt <- kurtQvec[rho_it]
         if (tempKurt <= 0) {tempKurt <- 1e-3}
         tempDF <- 12 / tempKurt
-        muQrho <- meanQvec[rho_it]
-        sigmaQrho <- sqrt(varQvec[rho_it])
+        muQrho <- bootstrapOut$meanQvec[rho_it]
+        sigmaQrho <- sqrt(bootstrapOut$varQvec[rho_it])
 
         # record
         liuDF$muQrhoBoot[rho_it] <- muQrho
