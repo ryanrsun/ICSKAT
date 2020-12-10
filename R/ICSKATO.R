@@ -31,6 +31,8 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
     varKappaAll = bootstrapOut$varKappaAll
     sigmaKappaAll = bootstrapOut$varKappaAll
     meanKappaAll = bootstrapOut$meanKappaAll
+    if (kurtKappa <= 0) {kurtKappa <- 1e-3}
+    if (kurtKappaAll <= 0) {kurtKappaAll <- 1e-3}
   } else {
     kurtQvec <- NA; varQvec <- NA; meanQvec <- NA; kurtKappa <- NA;
     kurtKappaAll <- NA; varKappaAll <- NA; sigmaKappaAll <- NA; meanKappaAll <- NA
