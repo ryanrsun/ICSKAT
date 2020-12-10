@@ -94,14 +94,23 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r,
   }
 
   # calculate the kurtosis of Qrho and of kappa
+  # now also getting the mean and variance
   kurtQvec <- rep(0, ncol(QrhoBoot))
+  varQvec <- rep(0, ncol(QrhoBoot))
+  meanQvec <- rep(0, ncol(QrhoBoot))
   for (i in 1:length(kurtQvec)) {
     kurtQvec[i] <- mean((QrhoBoot[, i] - mean(QrhoBoot[, i]))^4) / mean((QrhoBoot[, i] - mean(QrhoBoot[, i]))^2)^2 - 3
+    varQvec[i] <- mean((QrhoBoot[, i] - mean(QrhoBoot[, i]))^2)
+    meanQvec[i] <- mean(QrhoBoot[, i])
   }
   kurtKappa <- mean( (bootDF$kappa - mean(bootDF$kappa))^4 ) / mean( (bootDF$kappa - mean(bootDF$kappa))^2 )^2 - 3
   kurtKappaAll <- mean( (bootDF$kappaAll - mean(bootDF$kappaAll))^4 ) / mean( (bootDF$kappaAll - mean(bootDF$kappaAll))^2 )^2 - 3
+  varKappaAll <- mean( (bootDF$kappaAll - mean(bootDF$kappaAll))^2 )
+  meanKappaAll <- mean(bootDF$kappaAll)
 
   # return
-  return(list(kurtQvec = kurtQvec, kurtKappa = kurtKappa, kurtKappaAll = kurtKappaAll, bootDF = bootDF, QrhoBoot = QrhoBoot))
+  return(list(kurtQvec = kurtQvec, varQvec = varQvec, meanQvec = meanQvec, kurtKappa = kurtKappa,
+              kurtKappaAll = kurtKappaAll, varKappaAll = varKappaAll, meanKappaAll = meanKappaAll,
+              bootDF = bootDF, QrhoBoot = QrhoBoot))
 }
 
