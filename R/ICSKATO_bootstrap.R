@@ -131,7 +131,7 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
     listDS <- list(kurtQvec = kurtQvecDS, varQvec = varQvecDS, meanQvec = meanQvecDS, kurtKappa = kurtKappaDS,
                    kurtKappaAll = kurtKappaAllDS, varKappaAll = varKappaAllDS, meanKappaAll = meanKappaAllDS,
                    bootDF = bootDF[1:dsIdx, ], QrhoBoot = QrhoBoot[1:dsIdx, ])
-  }
+  } else {listDS <- NA}
 
   # return
   return(list(kurtQvec = kurtQvec, varQvec = varQvec, meanQvec = meanQvec, kurtKappa = kurtKappa,
