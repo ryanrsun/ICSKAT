@@ -19,8 +19,11 @@
 #'
 #' @export
 #'
-ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r,
-                              null_fit, gMat, fitAgain, checkpoint=FALSE, rhoVec) {
+ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, seed = NULL,
+                              null_fit, gMat, fitAgain, checkpoint=FALSE, downsample=1, rhoVec) {
+
+  # set seed
+  if (!is.null(seed)) { set.seed(seed) }
 
   # bootstrap
   # really the only quantity we need is kappa and QrhoBoot
@@ -108,9 +111,31 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r,
   varKappaAll <- mean( (bootDF$kappaAll - mean(bootDF$kappaAll))^2 )
   meanKappaAll <- mean(bootDF$kappaAll)
 
+  # if downsample < 1, give results with less bootstrapping to see if it's feasible
+  if (downsample < 1) {
+    dsIdx <- round(downsample * B)
+    kurtQvecDS <- rep(0, ncol(QrhoBoot))
+    varQvecDS <- rep(0, ncol(QrhoBoot))
+    meanQvecDS <- rep(0, ncol(QrhoBoot))
+    for (i in 1:length(kurtQvec)) {
+      kurtQvecDS[i] <- mean((QrhoBoot[1:dsIdx, i] - mean(QrhoBoot[1:dsIdx, i]))^4) / mean((QrhoBoot[1:dsIdx, i] - mean(QrhoBoot[1:dsIdx, i]))^2)^2 - 3
+      varQvecDS[i] <- mean((QrhoBoot[1:dsIdx, i] - mean(QrhoBoot[1:dsIdx, i]))^2)
+      meanQvecDS[i] <- mean(QrhoBoot[1:dsIdx, i])
+    }
+    kurtKappaDS <- mean( (bootDF$kappa[1:dsIdx] - mean(bootDF$kappa[1:dsIdx]))^4 ) / mean( (bootDF$kappa[1:dsIdx] - mean(bootDF$kappa[1:dsIdx]))^2 )^2 - 3
+    kurtKappaAllDS <- mean( (bootDF$kappaAll[1:dsIdx]  - mean(bootDF$kappaAll[1:dsIdx]))^4 ) / mean( (bootDF$kappaAll[1:dsIdx]- mean(bootDF$kappaAll[1:dsIdx]))^2 )^2 - 3
+    varKappaAllDS <- mean( (bootDF$kappaAll[1:dsIdx]  - mean(bootDF$kappaAll[1:dsIdx]))^2 )
+    meanKappaAllDS <- mean(bootDF$kappaAll[1:dsIdx])
+
+    # package it all inside another list
+    listDS <- list(kurtQvec = kurtQvecDS, varQvec = varQvecDS, meanQvec = meanQvecDS, kurtKappa = kurtKappaDS,
+                   kurtKappaAll = kurtKappaAllDS, varKappaAll = varKappaAllDS, meanKappaAll = meanKappaAllDS,
+                   bootDF = bootDF[1:dsIdx, ], QrhoBoot = QrhoBoot[1:dsIdx, ])
+  }
+
   # return
   return(list(kurtQvec = kurtQvec, varQvec = varQvec, meanQvec = meanQvec, kurtKappa = kurtKappa,
               kurtKappaAll = kurtKappaAll, varKappaAll = varKappaAll, meanKappaAll = meanKappaAll,
-              bootDF = bootDF, QrhoBoot = QrhoBoot))
+              bootDF = bootDF, QrhoBoot = QrhoBoot, listDS))
 }
 
