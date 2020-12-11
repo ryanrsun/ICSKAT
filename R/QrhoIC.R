@@ -31,8 +31,8 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, sigmaZeta=NUL
 
   # this DF will also hold the Davies p-value and Qrho for each rho
   # in addition to the liu p-value and moment-matching parameters
-  liuDF <- data.frame(liuPval = rep(NA, length(rhoVec)), delta=NA, df=NA, muQrho = NA,
-                      sigmaQrho = NA, daviesPval=NA, Qrho=NA, alwaysCentral=alwaysCentral)
+  liuDF <- data.frame(liuPval = rep(NA, length(rhoVec)), delta=NA,
+                      daviesPval=NA, Qrho=NA, alwaysCentral=alwaysCentral)
 
   # there should only be a few rho, so ok to use a for loop
   for (rho_it in 1:nRho) {

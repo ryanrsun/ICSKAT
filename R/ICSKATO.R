@@ -19,7 +19,7 @@
 #'
 #' @export
 #'
-ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icskatOut, useMixtureKurt = FALSE,
+ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , useMixtureKurt = FALSE,
                     liu=TRUE, liuIntegrate=FALSE, bootstrapOut = NULL,  alwaysCentral=FALSE) {
 
   if (!is.null(bootstrapOut)) {
@@ -147,7 +147,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut=icska
 
     # if bootstrap mean and variance are there, use it
     if (is.null(bootstrapOut)) {
-      qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrho[rho_it] / sigmaX) + QrhoDF$muQrho[rho_it]
+      qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoLambda[rho_it] / sigmaX) + QrhoDF$muQrhoLambda[rho_it]
     } else {
       qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoBoot[rho_it] / sigmaX) + QrhoDF$muQrhoBoot[rho_it]
     }
