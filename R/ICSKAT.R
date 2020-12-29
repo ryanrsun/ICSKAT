@@ -100,5 +100,5 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
   }
 
   return(list(lambdaQ=lambdaQ, p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, Ugamma=Ugamma,
-              burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ)))
+              burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ), err=0, errMsg=""))
 }
