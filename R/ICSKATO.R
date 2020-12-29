@@ -75,8 +75,10 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   kappaLambda <- eigen(kappaMat, symmetric = TRUE, only.values = TRUE)$values
   idx1 <- which(kappaLambda >= 0)
   idx2 <- which(kappaLambda > mean(kappaLambda[idx1])/100000)
-  if (length(idx2) < 1) {stop("Issue finding eigenvalues for kappa")}
-  kappaLambda <- kappaLambda[idx2]
+  if (length(idx2) < 1) {
+ 		return(list(pval = NA, QrhoDF=NA, r=r, intDavies = FALSE, err=1))	
+	} 
+	kappaLambda <- kappaLambda[idx2]
 
   # the moments of the kappa term
   lambdaMuK1 <-sum(kappaLambda)
@@ -173,32 +175,41 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     }
   }
 
-	# sometimes even the liu integration doesn't work
-	if (class(intOut)[1] == "simpleError") {
+	# A check in case some of the pRhoVec values are 0 or close to zero, in which case
+	# the qMinVec values can be Inf and cause errors in the integration.	
+	# SKATO package performs this check as well.
+	# According to their logic, since SKAT-O is between burden and SKAT,
+	# SKAT-O p-value should be <= min(p-values) * 2.
+	# See SKAT_Optimal_Get_Pvalue_VarMatching() in SKAT_Optimal_VarMatching.R.
+	multi <- ifelse(length(rhoVec) < 3, 2, 3)
+	posPval <- which(pRhoVec > 0)
+	
+	# if there is a zero or negative p-value in pRhoVec, corrected should be minimum positive p-value
+	if (length(posPval) < length(rhoVec) & length(posPval) > 0) {
+		correctedP <- min(pRhoVec[posPval])[1]
+	} else if (length(posPval) == length(rhoVec)) {
+		# here all the pRhoVec values are positive
+		correctedP <- multi * min(pRhoVec[posPval])[1]
+	} else {
+		# here there are no positive p-values in pRhoVec
+		# return error 9
 		return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=1))
 	}
 
-	# ICSKATO p-value
-	skatoPval <- 1 - intOut[1]$value
+	# sometimes the liu integration doesn't work
+  if (class(intOut)[1] == "simpleError") {
+ 		# if the reason it didn't work is because some of the pRhoVec values are too small, give it a corrected p-value
+		# error 2 means corrected p-value	
+		if (length(which(qMinVec == Inf)) > 0) {
+			return(list(pval = correctedP, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=2))
+		} else {
+			# error 1 is all other errors
+			return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=1))
+  	}
+	}
 
-	# SKATO package performs this check as well
-	# According to their logic, since SKAT-O is between burden and SKAT,
-	# SKAT-O p-value should be <= min(p-values) * 2.
-	# To correct conservatively, we use min(p-values) * 3 when number(r.all) >= 3.
-	# See SKAT_Optimal_Get_Pvalue_VarMatching() in SKAT_Optimal_VarMatching.R.
-	multi <- ifelse(rhoVec < 3, 2, 3)
-	posPval <- which(pRhoVec > 0)
-	# need correction
-	if (skatoPval <= 0) {
-	  # same corrections as SKAT package
-	  if (length(posPval) < length(rhoVec) & length(posPval) > 0) {
-	    correctedP <- min(pRhoVec[posPval])[1]
-	  } else if (length(posPval) == length(rhoVec)) {
-	    correctedP <- multi * min(pRhoVec[posPval])[1]
-	  } else {
-	    correctedP <- skatoPval
-	  }
-	} else {correctedP <- skatoPval}
+  # ICSKATO p-value
+  skatoPval <- 1 - intOut[1]$value
 
   # return
   return(list(pval = skatoPval, correctedP = correctedP, QrhoDF=QrhoDF, r=r,
