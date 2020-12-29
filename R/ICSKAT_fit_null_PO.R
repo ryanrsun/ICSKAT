@@ -98,6 +98,12 @@ ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, r
     fullU <- c(Ubeta, Ualpha)
     
     # update
+		# sometimes fullImat is singular
+		solvedImat <- tryCatch(solve(fullImat), error=function(e) e)
+		if (class(solvedImat)[1] %in% c("simpleError")) {
+			return(list(nullCoef=NA, iter=iter, Itt=NA, err=1, errMsg = "fullImat singular, try different initial values"))
+		}
+
     newCoef <- tempCoef - t(fullU) %*% solve(fullImat)
     diffCoef <- (newCoef - tempCoef) %*% t(newCoef - tempCoef)
     tempCoef <- as.numeric(newCoef)
@@ -108,5 +114,5 @@ ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, r
     stopSolve <- ifelse(diffCoef < eps & sum(fullU^2) < length(fullU), TRUE, FALSE)
   }
   
-  return(list(nullCoef=tempCoef, iter=iter, Itt=fullImat))
+  return(list(nullCoef=tempCoef, iter=iter, Itt=fullImat, err=0, errMsg=""))
 }
