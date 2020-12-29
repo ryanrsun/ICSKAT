@@ -63,6 +63,11 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
         I_term3 <- temp_term %*% t(temp_term)
         iMat <- I_term1 + I_term2  - I_term3
 
+				# sometimes iMat is singular
+				solvedImat <- tryCatch(solve(iMat), error=function(e) e)
+				if (class(solvedImat)[1] %in% c("simpleError")) {
+					return(list(beta_fit=NA, iter=iter, Itt=NA, err=1, errMsg="iMat singular, try different initial values"))
+				}
         beta_new <- temp_beta - t(uVec) %*% solve(iMat)
         diff_beta <- (beta_new - temp_beta) %*% t(beta_new - temp_beta)
         temp_beta <- as.numeric(beta_new)
@@ -71,5 +76,5 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
 	if(checkpoint) {cat("iter ", iter, "\n")}
     }
 
-    return(list(beta_fit=beta_new, iter=iter, Itt=iMat))
+    return(list(beta_fit=beta_new, iter=iter, Itt=iMat, err=0, errMsg=""))
 }
