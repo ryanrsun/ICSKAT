@@ -88,17 +88,35 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
   skatQ <- t(Ugamma) %*% Ugamma
   burdenQ <- (sum(Ugamma))^2
 
+	errCode <- 0
+	errMsg <- ""
   if (pvalue) {
     lambdaQ <- eigen(sig_mat)$values
     p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
-    B_burden= burdenQ / sum(sig_mat);
-    p_burden=1-pchisq(B_burden,df=1)
-  } else {
+ 		# as noted in the CompQuadForm documentation, sometimes you need to play with acc or lim parameters
+		if (!is.na(p_SKAT)) {
+			if (p_SKAT > 1) {
+				paramDF <- data.frame(expand.grid(lim = c(10000, 20000, 50000), acc=c(1e-7, 1e-6, 1e-5, 1e-4)))
+				paramCounter <- 1
+				while(p_SKAT > 1) {
+					tempLim <- paramDF$lim[paramCounter]
+					tempAcc <- paramDF$acc[paramCounter]
+					p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=tempAcc, lim=tempLim)$Qq
+					paramCounter <- paramCounter + 1
+					if (paramCounter > nrow(paramDF)) {break}
+				}
+				errCode <- 22
+				errMsg <- "Had to adjust parameters on CompQuadForm"
+			}
+		} 
+		B_burden= burdenQ / sum(sig_mat);
+    p_burden=1-pchisq(B_burden,df=1) 
+	} else {
     pSKAT <- NA
     lambdaQ <- 1
     p_burden <- NA
   }
 
-  return(list(lambdaQ=lambdaQ, p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, Ugamma=Ugamma,
-              burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ), err=0, errMsg=""))
+  return(list(lambdaQ=lambdaQ, p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, Ugamma=Ugamma, null_beta = null_beta,
+              burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ), err=errCode, errMsg=errMsg))
 }
