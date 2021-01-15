@@ -1,4 +1,4 @@
-ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, PH=TRUE, nKnots=1, maxIter=3) {
+ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, PH=TRUE, nKnots=1, maxIter=3, returnNull = FALSE) {
 
 	xMat <- left_dmat[, 1:(ncol(left_dmat) - nKnots - 2)]	
 	counter <- 0
@@ -51,17 +51,21 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
 		}
 	} # end while loop
 
-	
-	# return
-	if (pass) {
-		return(skatOutput)
-	} else {
-		# failed null fit
+	# did it work
+	if (!pass) {
 		if (nullFit$err == 1) {
-			return(list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed null fit"))
-		} else {
-			return(list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed testing"))
-		}	
+      skatOutput <- list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed null fit")
+    } else {
+      skatOutput <- list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed testing")
+    }	
 	}
+
+	# return
+	if (returnNull) {
+      return(list(skatOutput = skatOutput, nullFit = nullFit))
+  } else {
+      return(skatOutput)
+  }
+
 }
 
