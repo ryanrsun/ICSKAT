@@ -40,7 +40,7 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
                                rt=allTimes[, time_it], quant_r=quant_r)
 
     # total baseline hazard
-    tempH <- exp(tempDmat$left_dmat %*% as.numeric(null_fit$beta_fit[(p+1):(p+nKnots+2)])) * covariateH
+    tempH <- exp(tempDmat$left_dmat %*% as.numeric(nullBeta[(p+1):(p+nKnots+2)])) * covariateH
 
     # there can be time 0, in that case manually fix to survival = 1
     fittedSurv[, time_it] <- ifelse(allTimes[, time_it] == 0, 1, exp(-tempH))
