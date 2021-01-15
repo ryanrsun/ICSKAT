@@ -15,7 +15,7 @@
 #' \item{QrhoDF}{Data frame containing the distribution and p-value for each Krho.}
 #' \item{r}{The rank of the cholesky decomposition of the kappa part}
 #' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false)}
-#' \item{err}{Boolean, did the integration run into an error}
+#' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue, 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0)}
 #'
 #' @export
 #'
@@ -70,6 +70,8 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   kappaSubtract <- matrix(data=rep(zBar, p), ncol=p, byrow=FALSE) %*% diag(x = forDiag[1, ])
   kappaHalf <- zMat - kappaSubtract
   kappaMat <- t(kappaHalf) %*% kappaHalf
+	# sometimes sig_mat is just 0
+	if (length(which(is.na(kappaMat))) > 0) { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
 
   # keep according to SKAT package procedure
   kappaLambda <- eigen(kappaMat, symmetric = TRUE, only.values = TRUE)$values
@@ -170,7 +172,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     # sometimes the CompQuadForm has numerical issues
     if (class(intOut)[1] == "simpleError") {
       intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
-                                   muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
+                                   muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
       intDavies <- FALSE
     }
   }
@@ -193,7 +195,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
 	} else {
 		# here there are no positive p-values in pRhoVec
 		# return error 9
-		return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=1))
+		return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=9))
 	}
 
 	# sometimes the liu integration doesn't work
@@ -203,8 +205,8 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
 		if (length(which(qMinVec == Inf)) > 0) {
 			return(list(pval = correctedP, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=2))
 		} else {
-			# error 1 is all other errors
-			return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=1))
+			# error 3 is all other errors
+			return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=3))
   	}
 	}
 
