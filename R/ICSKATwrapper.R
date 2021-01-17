@@ -45,7 +45,7 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
 		}
 
 		# if worked, break
-		if (skatOutput$err == 0) {
+		if (skatOutput$err == 0 | skatOutput$err == 22) {
 			pass <- TRUE	
 			break
 		}
