@@ -84,7 +84,16 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
 	rm(gtTermL, gtTermR, ggTerm2, gtHalfL, gtHalfR)
 
   # we just need the Igg portion of the inverse
-  sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
+ 	# make sure there are no NA
+	if (length(which(is.na(Igg))) > 0 | length(which(is.na(Igt))) > 0 | length(which(is.na(Itt))) > 0) {
+		return(list(lambdaQ=NA, p_SKAT=NA, p_burden=NA, skatQ=NA, Ugamma=Ugamma, null_beta = null_beta,
+              burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
+	} 
+	sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
+	if (length(which(is.na(sig_mat))) > 0) {
+		return(list(lambdaQ=NA, p_SKAT=NA, p_burden=NA, skatQ=NA, Ugamma=Ugamma, null_beta = null_beta,
+              burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
+  } 
   skatQ <- t(Ugamma) %*% Ugamma
   burdenQ <- (sum(Ugamma))^2
 
