@@ -48,25 +48,18 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
     # give it the old beta
     # or should I do the entire null fit again?
     if (fitAgain) {
-      newNull <- ICSKAT_fit_null(init_beta=as.numeric(null_fit$beta_fit), lt=newLT, rt=newRT,
-                                 left_dmat=newLeft, right_dmat=newRight, runOnce = FALSE,
-                                 obs_ind=obs_ind, tpos_ind=tpos_ind)
-
-      bootSKAT <- ICskat(left_dmat=newLeft, tpos_ind=tpos_ind, obs_ind=obs_ind,
-                         right_dmat=newRight, gMat=gMat, lt=newLT, rt=newRT,
-                         null_beta=as.numeric(newNull$beta_fit), Itt=newNull$Itt)
+			PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit), 
+				lt=newLT, rt=newRT, runOnce = FALSE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 5)
+			newNull <- PHres$nullFit
+			bootSKAT <- PHres$skatOutput 
     } else {
-
-      newNull <- ICSKAT_fit_null(init_beta=as.numeric(null_fit$beta_fit), lt=newLT, rt=newRT,
-                                 left_dmat=newLeft, right_dmat=newRight, runOnce = TRUE,
-                                 obs_ind=obs_ind, tpos_ind=tpos_ind)
-
-      # run skat on bootstrapped data
-      # give it the old beta but the null Itt
-      bootSKAT <- ICskat(left_dmat=newLeft, tpos_ind=tpos_ind, obs_ind=obs_ind,
-                         right_dmat=newRight, gMat=gMat, lt=newLT, rt=newRT,
-                         null_beta=as.numeric(null_fit$beta_fit), Itt=newNull$Itt)
+			PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit), 
+				lt=newLT, rt=newRT, runOnce = TRUE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 1)
+			newNull <- PHres$nullFit
+			bootSKAT <- PHres$skatOutput
     }
+		# if error, go on
+		if (bootSKAT$err != 0 & bootSKAT$err != 22) {next}
 
     # fix eigenvalues
     newLambda <- bootSKAT$lambdaQ
@@ -95,6 +88,12 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
       if (checkpoint) {cat(boot_it)}
     }
   }
+	# remove the NAs
+	isNA <- which(is.na(bootDF$kappa))
+	if (length(isNA) > 0) {
+		bootDF <- bootDF[-numNA, ]
+		QrhoBoot <- QrhoBoot[-numNA, ]
+	}
 
   # calculate the kurtosis of Qrho and of kappa
   # now also getting the mean and variance
@@ -136,6 +135,6 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
   # return
   return(list(kurtQvec = kurtQvec, varQvec = varQvec, meanQvec = meanQvec, kurtKappa = kurtKappa,
               kurtKappaAll = kurtKappaAll, varKappaAll = varKappaAll, meanKappaAll = meanKappaAll,
-              bootDF = bootDF, QrhoBoot = QrhoBoot, listDS = listDS))
+              bootDF = bootDF, QrhoBoot = QrhoBoot, listDS = listDS, nonNA = B - length(isNA)))
 }
 
