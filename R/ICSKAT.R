@@ -18,7 +18,10 @@
 #' \item{sig_mat}{The covariance matrix of the score equations for genetic effects when treated as fixed effects}
 #' \item{skatQ}{SKAT test statistic}
 #' \item{burdenQ}{Burden test statistic}
-#'
+#' \item{lambdaQ}{Vector of eigenvalues of variance matrix}
+#' \item{null_beta}{The fitted null parameters}
+#' \item{err}{Will be 0 for no error, 22 if had to adjust parameters on CompQuadForm (totally normal), or 99 if NA in variance matrix. ICSKATwrapper will return 1 here if the null fit has an error}
+#' \item{errMsg}{Explains error code, blank string if no error}
 #' @export
 #' @examples
 #' X <- matrix(data=rnorm(200), nrow=100)
