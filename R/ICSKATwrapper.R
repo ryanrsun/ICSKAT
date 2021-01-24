@@ -1,4 +1,4 @@
-ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, PH=TRUE, nKnots=1, maxIter=3, returnNull = FALSE) {
+ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, PH=TRUE, nKnots=1, maxIter=3, eps=10^(-6), returnNull = FALSE) {
 
 	xMat <- left_dmat[, 1:(ncol(left_dmat) - nKnots - 2)]	
 	counter <- 0
@@ -18,17 +18,17 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
 		if (PH) {
 			nullFit <- ICSKAT_fit_null(init_beta=init_beta, lt=lt, rt=rt,
                               left_dmat=left_dmat, right_dmat=right_dmat,
-                              obs_ind=obs_ind, tpos_ind=tpos_ind)
+                              obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps)
 		}	else {
 			nullFit <- ICSKAT_fit_null_PO(init_beta=init_beta,
                               lt=lt, rt=rt,
                               ZL=left_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)],
                               ZR=right_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)], xMat = xMat,
-                              obs_ind=obs_ind, tpos_ind=tpos_ind)
+                              obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps)
 		}
 
 		# if null fit not good, go to next loop
-		if ( nullFit$err == 1 ) {
+		if ( nullFit$err == 1 | nullFit$diff_beta > eps) {
 			next
 		}
 	
