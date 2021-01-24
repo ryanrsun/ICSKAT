@@ -16,6 +16,9 @@
 #' \item{beta_fit}{(p+nknots+2)*1 vector of fitted coefficients under null model.}
 #' \item{iter}{Number of iterations needed to converge.}
 #' \item{Itt}{Fisher information matrix for the fitted coefficients.}
+#' \item{diff_beta}{Difference between beta_fit and previous iteration of the vector, can be checked for errors}
+#' \item{err}{Value is 0 if no errors and 1 if Itt is singular, can't perform fit}
+#' \item{err}{Empty string if err=0, explains error if there is one}
 #'
 #' @export
 #' @examples
@@ -66,7 +69,7 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
 				# sometimes iMat is singular
 				solvedImat <- tryCatch(solve(iMat), error=function(e) e)
 				if (class(solvedImat)[1] %in% c("simpleError")) {
-					return(list(beta_fit=NA, iter=iter, Itt=NA, err=1, errMsg="iMat singular, try different initial values"))
+					return(list(beta_fit=NA, iter=iter, diff_beta=diff_beta, Itt=NA, err=1, errMsg="iMat singular, try different initial values"))
 				}
         beta_new <- temp_beta - t(uVec) %*% solve(iMat)
         diff_beta <- (beta_new - temp_beta) %*% t(beta_new - temp_beta)
