@@ -76,5 +76,5 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
 	if(checkpoint) {cat("iter ", iter, "\n")}
     }
 
-    return(list(beta_fit=beta_new, iter=iter, Itt=iMat, err=0, errMsg=""))
+    return(list(beta_fit=beta_new, iter=iter, diff_beta=diff_beta, Itt=iMat, err=0, errMsg=""))
 }
