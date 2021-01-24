@@ -1,4 +1,5 @@
-ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, PH=TRUE, nKnots=1, maxIter=3, eps=10^(-6), returnNull = FALSE) {
+ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, 
+	PH=TRUE, nKnots=1, maxIter=3, eps=10^(-6), runOnce = FALSE, returnNull = FALSE) {
 
 	xMat <- left_dmat[, 1:(ncol(left_dmat) - nKnots - 2)]	
 	counter <- 0
@@ -18,17 +19,17 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
 		if (PH) {
 			nullFit <- ICSKAT_fit_null(init_beta=init_beta, lt=lt, rt=rt,
                               left_dmat=left_dmat, right_dmat=right_dmat,
-                              obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps)
+                              obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps, runOnce=runOnce)
 		}	else {
 			nullFit <- ICSKAT_fit_null_PO(init_beta=init_beta,
                               lt=lt, rt=rt,
                               ZL=left_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)],
                               ZR=right_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)], xMat = xMat,
-                              obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps)
+                              obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps, runOnce=runOnce)
 		}
 
-		# if null fit not good, go to next loop
-		if ( nullFit$err == 1 | nullFit$diff_beta > eps) {
+		# if null fit not good, go to next loop, unless runOnce
+		if ( (nullFit$err == 1 | nullFit$diff_beta > eps) & runOnce == FALSE) {
 			next
 		}
 	
@@ -44,8 +45,9 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
                     obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, nullCoef=nullFit$nullCoef, Itt = nullFit$Itt)
 		}
 
-		# if worked, break
-		if (skatOutput$err == 0 | skatOutput$err == 22) {
+		# if worked or runOnce, break
+		# if asking for runOnce, may return with unexpected errors
+		if ( skatOutput$err == 0 | skatOutput$err == 22 | runOnce == TRUE ) {
 			pass <- TRUE	
 			break
 		}
@@ -53,10 +55,12 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
 
 	# did it work
 	if (!pass) {
-		if (nullFit$err == 1) {
+		if (nullFit$err == 1 | nullFit$diff_beta > eps) {
       skatOutput <- list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed null fit")
     } else {
-      skatOutput <- list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed testing")
+			# if it failed at testing, then just let it return the testing error
+			a <- 1
+      #skatOutput <- list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed testing")
     }	
 	}
 
