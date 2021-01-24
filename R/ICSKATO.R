@@ -15,7 +15,16 @@
 #' \item{QrhoDF}{Data frame containing the distribution and p-value for each Krho.}
 #' \item{r}{The rank of the cholesky decomposition of the kappa part}
 #' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false)}
-#' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue, 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0)}
+#' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF, 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0 unless burden is 1)}
+#' \item{errMsg}{Explains the error code}
+#' \item{correctedP}{Will be the same value as pval when there is an issue with one of the p-value components of SKATO}
+#' \item{lambdaKurtK1}{Kurtosis of kappa term using eigenvalues}
+#' \item{lambdaSigmaK1}{Standard deviation of kappa term using eigenvalues}
+#' \item{lambdaMuK1}{Mean of kappa term using eigenvalues}
+#' \item{bootKurtKappaAll}{Kurtosis of kappa term using bootstrap data}
+#' \item{bootSigmaKappaAll}{Standard deviation of kappa term using bootstrap data}
+#' \item{bootMuKappaAll}{Mean of kappa term using bootstrap data}
+#' \item{mixDFVec}{Degrees of freedom of the mixture kappa term if following SKAT package procedure, we don't really use it} 
 #'
 #' @export
 #'
@@ -146,67 +155,67 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
       mixDFVec[rho_it] <- mixDF
       tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = mixDF)
       muX <- mixDF
-      sigmaX <- sqrt(2 * mixDF)
-    }
+							sigmaX <- sqrt(2 * mixDF)
+						}
 
-    # if bootstrap mean and variance are there, use it
-    if (is.null(bootstrapOut)) {
-      qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoLambda[rho_it] / sigmaX) + QrhoDF$muQrhoLambda[rho_it]
-    } else {
-      qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoBoot[rho_it] / sigmaX) + QrhoDF$muQrhoBoot[rho_it]
-    }
-  }
+						# if bootstrap mean and variance are there, use it
+						if (is.null(bootstrapOut)) {
+							qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoLambda[rho_it] / sigmaX) + QrhoDF$muQrhoLambda[rho_it]
+						} else {
+							qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoBoot[rho_it] / sigmaX) + QrhoDF$muQrhoBoot[rho_it]
+						}
+					}
 
-  # append to QrhoDF
-  QrhoDF <- QrhoDF %>% mutate(rhoVec = rhoVec, tauVec = tauVec, qMinVec = qMinVec)
+					# append to QrhoDF
+					QrhoDF <- QrhoDF %>% mutate(rhoVec = rhoVec, tauVec = tauVec, qMinVec = qMinVec)
 
-  # integrate
-  if (liuIntegrate) {
-    intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
-                                 muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
-    intDavies <- FALSE
-  } else {
-    intOut <-  tryCatch(integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000,
-                                  muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, abs.tol = 10^(-25)), error=function(e) e)
-    intDavies <- TRUE
-    # sometimes the CompQuadForm has numerical issues
-    if (class(intOut)[1] == "simpleError") {
-      intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
-                                   muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
-      intDavies <- FALSE
-    }
-  }
+					# integrate
+					if (liuIntegrate) {
+						intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+																				 muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
+						intDavies <- FALSE
+					} else {
+						intOut <-  tryCatch(integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000,
+																					muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, abs.tol = 10^(-25)), error=function(e) e)
+						intDavies <- TRUE
+						# sometimes the CompQuadForm has numerical issues
+						if (class(intOut)[1] == "simpleError") {
+							intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+																					 muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
+							intDavies <- FALSE
+						}
+					}
 
-	# A check in case some of the pRhoVec values are 0 or close to zero, in which case
-	# the qMinVec values can be Inf and cause errors in the integration.	
-	# SKATO package performs this check as well.
-	# According to their logic, since SKAT-O is between burden and SKAT,
-	# SKAT-O p-value should be <= min(p-values) * 2.
-	# See SKAT_Optimal_Get_Pvalue_VarMatching() in SKAT_Optimal_VarMatching.R.
-	multi <- ifelse(length(rhoVec) < 3, 2, 3)
-	posPval <- which(pRhoVec > 0)
-	
-	# if there is a zero or negative p-value in pRhoVec, corrected should be minimum positive p-value
-	if (length(posPval) < length(rhoVec) & length(posPval) > 0) {
-		correctedP <- min(pRhoVec[posPval])[1]
-	} else if (length(posPval) == length(rhoVec)) {
-		# here all the pRhoVec values are positive
-		correctedP <- multi * min(pRhoVec[posPval])[1]
-	} else {
-		# here there are no positive p-values in pRhoVec
-		# return error 9
-		return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=9))
-	}
+					# A check in case some of the pRhoVec values are 0 or close to zero, in which case
+					# the qMinVec values can be Inf and cause errors in the integration.	
+					# SKATO package performs this check as well.
+					# According to their logic, since SKAT-O is between burden and SKAT,
+					# SKAT-O p-value should be <= min(p-values) * 2.
+					# See SKAT_Optimal_Get_Pvalue_VarMatching() in SKAT_Optimal_VarMatching.R.
+					multi <- ifelse(length(rhoVec) < 3, 2, 3)
+					posPval <- which(pRhoVec > 0)
+					
+					# if there is a zero or negative p-value in pRhoVec, corrected should be minimum positive p-value
+					if (length(posPval) < length(rhoVec) & length(posPval) > 0) {
+						correctedP <- min(pRhoVec[posPval])[1]
+					} else if (length(posPval) == length(rhoVec)) {
+						# here all the pRhoVec values are positive
+						correctedP <- multi * min(pRhoVec[posPval])[1]
+					} else {
+						# here there are no positive p-values in pRhoVec
+						# return error 9
+						return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=9))
+					}
 
-	# sometimes the liu integration doesn't work
-  if (class(intOut)[1] == "simpleError") {
- 		# if the reason it didn't work is because some of the pRhoVec values are too small, give it a corrected p-value
-		# error 2 means corrected p-value	
-		if (length(which(qMinVec == Inf)) > 0) {
-			return(list(pval = correctedP, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=2))
-		} else {
-			# error 3 is all other errors
-			return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=3))
+					# sometimes the liu integration doesn't work
+					if (class(intOut)[1] == "simpleError") {
+						# if the reason it didn't work is because some of the pRhoVec values are too small, give it a corrected p-value
+						# error 2 means corrected p-value	
+						if (length(which(qMinVec == Inf)) > 0) {
+							return(list(pval = correctedP, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=2))
+						} else {
+							# error 3 is all other errors
+							return(list(pval = NA, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=3))
   	}
 	}
 
