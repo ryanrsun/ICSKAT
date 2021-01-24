@@ -49,12 +49,12 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
     # or should I do the entire null fit again?
     if (fitAgain) {
 			PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit), 
-				lt=newLT, rt=newRT, runOnce = FALSE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 5)
+				lt=newLT, rt=newRT, runOnce = FALSE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 5, returnNull=TRUE)
 			newNull <- PHres$nullFit
 			bootSKAT <- PHres$skatOutput 
     } else {
 			PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit), 
-				lt=newLT, rt=newRT, runOnce = TRUE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 1)
+				lt=newLT, rt=newRT, runOnce = TRUE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 1, returnNull=TRUE)
 			newNull <- PHres$nullFit
 			bootSKAT <- PHres$skatOutput
     }
@@ -91,8 +91,8 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
 	# remove the NAs
 	isNA <- which(is.na(bootDF$kappa))
 	if (length(isNA) > 0) {
-		bootDF <- bootDF[-numNA, ]
-		QrhoBoot <- QrhoBoot[-numNA, ]
+		bootDF <- bootDF[-isNA, ]
+		QrhoBoot <- QrhoBoot[-isNA, ]
 	}
 
   # calculate the kurtosis of Qrho and of kappa
