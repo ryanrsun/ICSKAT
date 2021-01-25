@@ -62,7 +62,7 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
 		if (bootSKAT$err != 0 & bootSKAT$err != 22) {next}
 
     # fix eigenvalues
-    newLambda <- bootSKAT$lambdaQ
+    newLambda <- as.numeric(bootSKAT$lambdaQ)
     idx1 <- which(newLambda >= 0)
     idx2 <- which(newLambda > mean(newLambda[idx1])/100000)
     newLambda <- newLambda[idx2]
