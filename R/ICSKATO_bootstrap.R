@@ -84,7 +84,7 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
     QrhoBoot[boot_it, ] <-  (1 - rhoVec) * as.numeric(bootSKAT$skatQ) +
       rhoVec * as.numeric(bootSKAT$burdenQ)
 
-    if (boot_it%%100 == 0) {
+    if (boot_it%%10 == 0) {
       if (checkpoint) {cat(boot_it)}
     }
   }
