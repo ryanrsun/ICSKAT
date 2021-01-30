@@ -76,7 +76,13 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
         temp_beta <- as.numeric(beta_new)
         iter <- iter + 1
         if (runOnce) {break}
-	if(checkpoint) {cat("iter ", iter, "\n")}
+
+				# very rarely does it get stuck
+				if (iter > 100) {
+					return(list(beta_fit=NA, iter=iter, diff_beta=diff_beta, Itt=NA, err=1, errMsg="Too many iterations, try different initial values"))
+				}
+
+				if(checkpoint) {cat("iter ", iter, "\n")}
     }
 
     return(list(beta_fit=beta_new, iter=iter, diff_beta=diff_beta, Itt=iMat, err=0, errMsg=""))
