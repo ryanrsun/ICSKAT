@@ -71,6 +71,10 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat,
 				if (class(solvedImat)[1] %in% c("simpleError")) {
 					return(list(beta_fit=NA, iter=iter, diff_beta=diff_beta, Itt=NA, err=1, errMsg="iMat singular, try different initial values"))
 				}
+				if (length(which(is.na(solvedImat))) > 0)
+				{
+					return(list(beta_fit=NA, iter=iter, diff_beta=diff_beta, Itt=NA, err=1, errMsg="iMat inverse has NaN, try different initial values"))
+				}
         beta_new <- temp_beta - t(uVec) %*% solve(iMat)
         diff_beta <- (beta_new - temp_beta) %*% t(beta_new - temp_beta)
         temp_beta <- as.numeric(beta_new)
