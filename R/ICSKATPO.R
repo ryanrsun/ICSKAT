@@ -32,7 +32,7 @@
 #'
 ICskatPO <- function(ZL, ZR, xMat, lt, rt, obs_ind, tpos_ind, gMat, nullCoef, Itt) {
 
-	# assume that you put the spline coefficients last  
+  # assume that you put the spline coefficients last  
   betaVec <- nullCoef[1:ncol(xMat)]
   alphaVec <- nullCoef[(ncol(xMat)+1):length(nullCoef)]
 
@@ -43,13 +43,13 @@ ICskatPO <- function(ZL, ZR, xMat, lt, rt, obs_ind, tpos_ind, gMat, nullCoef, It
   # Survival term
   SL <- ifelse(lt == 0, 1, expit(-etaL))
   SR <- ifelse(rt == 999, 0, expit(-etaR))
-	SR[!is.finite(SR)] <- 0
+  SR[!is.finite(SR)] <- 0
   SLSR <- SL - SR
- 	# sometimes A is 0
-	# set it at 10^(-100) because you can square that and R will not round it to 0
+  # sometimes A is 0
+  # set it at 10^(-100) because you can square that and R will not round it to 0
   #SLSR[which(SLSR <= 0)] <- min(SLSR[which(SLSR > 0)])
-	#SLSR[which(SLSR < 10^(-100))] <- 10^(-100)
-	SLSR[which(SLSR == 0)] <- min(SLSR[which(SLSR > 0)])
+  #SLSR[which(SLSR < 10^(-100))] <- 10^(-100)
+  SLSR[which(SLSR == 0)] <- min(SLSR[which(SLSR > 0)])
  
   # if lt=0 or rt=999, we swap 0 because -expit(etaL) is the survival and should be 0 or 1. 
   dGinvLdEta <- ifelse(lt == 0, 0, -expit(-etaL) * (1 - expit(-etaL)))
@@ -61,71 +61,71 @@ ICskatPO <- function(ZL, ZR, xMat, lt, rt, obs_ind, tpos_ind, gMat, nullCoef, It
   
   # second derivative terms
   # if lt=0 or rt=999, we swap 0 because -expit(etaL) is the survival and should be 0 or 1. 
-	# also, if checkNumR is -Inf, that means the denominator is like -Inf^2, so that's why we set it to 0 so the 
-	# quotient will be correctly 0.	
-	checkNumR <- exp(-etaR) - exp(-2 * etaR)
-	numR <- ifelse(exp(-2 * etaR) == Inf, 0, checkNumR)
-	checkNumL <- exp(-etaL) - exp(-2 * etaL)
-	numL <- ifelse(exp(-2 * etaL) == Inf, 0, checkNumL)
-	d2GinvLdEta2 <- ifelse(lt == 0, 0, numL / (1 + exp(-etaL))^3)  
+  # also, if checkNumR is -Inf, that means the denominator is like -Inf^2, so that's why we set it to 0 so the 
+  # quotient will be correctly 0.	
+  checkNumR <- exp(-etaR) - exp(-2 * etaR)
+  numR <- ifelse(exp(-2 * etaR) == Inf, 0, checkNumR)
+  checkNumL <- exp(-etaL) - exp(-2 * etaL)
+  numL <- ifelse(exp(-2 * etaL) == Inf, 0, checkNumL)
+  d2GinvLdEta2 <- ifelse(lt == 0, 0, numL / (1 + exp(-etaL))^3)  
   d2GinvRdEta2 <- ifelse(rt == 999, 0, numR / (1 + exp(-etaR))^3)
  
   # score vector
-	# this works fine with minimal checking because when SL or SR is very small, both the numerator and denominator are on the
-	# same scale as long as SLSR is not allowed to be 0.
+  # this works fine with minimal checking because when SL or SR is very small, both the numerator and denominator are on the
+  # same scale as long as SLSR is not allowed to be 0.
   UgammaSweep <- (dGinvLdEta - dGinvRdEta) / SLSR
   Ugamma <- rowSums( sweep(t(gMat), MARGIN = 2, STATS = UgammaSweep, FUN = "*") )
-	if (length(which(is.na(UgammaSweep))) > 0 | length(which(is.na(Ugamma))) > 0) {
-		return(list(p_SKAT=NA, p_burden=NA, skatQ=NA, burdenQ=NA, sig_mat = NA, complex=NA, err=1, errMsg="bad null fit, try different starting values"))
-	}
+  if (length(which(is.na(UgammaSweep))) > 0 | length(which(is.na(Ugamma))) > 0) {
+    return(list(p_SKAT=NA, p_burden=NA, skatQ=NA, burdenQ=NA, sig_mat = NA, complex=NA, err=1, errMsg="bad null fit, try different starting values"))
+  }
 
   # Igg
   #IggSweepCheck <- (d2GinvLdEta2 - d2GinvRdEta2) / SLSR - UgammaSweep^2
-	#IggMax <- min( max(abs(IggSweepCheck[which(abs(IggSweepCheck) != Inf)])), 10^20 )
-	#IggSweep <- ifelse(abs(IggSweepCheck) > IggMax, IggMax * sign(IggSweepCheck), IggSweepCheck)
-	IggSweep <- (d2GinvLdEta2 - d2GinvRdEta2) / SLSR - UgammaSweep^2	
-	Igg <- sweep(t(gMat), 2, IggSweep, FUN = "*") %*% gMat
-	if (length(which(is.na(Igg))) > 0) {
+  #IggMax <- min( max(abs(IggSweepCheck[which(abs(IggSweepCheck) != Inf)])), 10^20 )
+  #IggSweep <- ifelse(abs(IggSweepCheck) > IggMax, IggMax * sign(IggSweepCheck), IggSweepCheck)
+  IggSweep <- (d2GinvLdEta2 - d2GinvRdEta2) / SLSR - UgammaSweep^2	
+  Igg <- sweep(t(gMat), 2, IggSweep, FUN = "*") %*% gMat
+  if (length(which(is.na(Igg))) > 0) {
     return(list(p_SKAT=NA, p_burden=NA, skatQ=NA, burdenQ=NA, sig_mat = NA, complex=NA, err=1, errMsg="bad null fit, try different starting values"))
-	}
+  }
   
   # Iga
-	# we can get in trouble when SL - SR is very small, in that case the second term is kind of like dGinvLdEta / SLSR
-	#checkIgaSweepL <- ifelse(lt == 0, 0, d2GinvLdEta2 * dEtaLdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvLdEta * dEtaLdAlpha / SLSR^2)
-	#IgaSweepL1 <- ifelse(checkIgaSweepL > 10^100 | is.na(checkIgaSweepL), d2GinvLdEta2 * dEtaLdAlpha / SLSR -  dGinvLdEta * dEtaLdAlpha / SLSR, checkIgaSweepL)
-	#IgaSweepL <- ifelse(abs(IgaSweepL1) > 10^30, sign(IgaSweepL1) * 10^30, IgaSweepL1) 	
-	#checkIgaSweepR <- ifelse(rt == 999, 0, d2GinvRdEta2 * dEtaRdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvRdEta * dEtaRdAlpha / SLSR^2)
-	#IgaSweepR1 <- ifelse(checkIgaSweepR > 10^100 | is.na(checkIgaSweepR), d2GinvRdEta2 * dEtaRdAlpha / SLSR - dGinvRdEta * dEtaRdAlpha / SLSR, checkIgaSweepR)
-	#IgaSweepR	<- ifelse(abs(IgaSweepR1) > 10^30, sign(IgaSweepR1) * 10^30, IgaSweepR1)
-	IgaSweepL <- ifelse(lt == 0, 0, d2GinvLdEta2 * dEtaLdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvLdEta * dEtaLdAlpha / SLSR^2)
+  # we can get in trouble when SL - SR is very small, in that case the second term is kind of like dGinvLdEta / SLSR
+  #checkIgaSweepL <- ifelse(lt == 0, 0, d2GinvLdEta2 * dEtaLdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvLdEta * dEtaLdAlpha / SLSR^2)
+  #IgaSweepL1 <- ifelse(checkIgaSweepL > 10^100 | is.na(checkIgaSweepL), d2GinvLdEta2 * dEtaLdAlpha / SLSR -  dGinvLdEta * dEtaLdAlpha / SLSR, checkIgaSweepL)
+  #IgaSweepL <- ifelse(abs(IgaSweepL1) > 10^30, sign(IgaSweepL1) * 10^30, IgaSweepL1) 	
+  #checkIgaSweepR <- ifelse(rt == 999, 0, d2GinvRdEta2 * dEtaRdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvRdEta * dEtaRdAlpha / SLSR^2)
+  #IgaSweepR1 <- ifelse(checkIgaSweepR > 10^100 | is.na(checkIgaSweepR), d2GinvRdEta2 * dEtaRdAlpha / SLSR - dGinvRdEta * dEtaRdAlpha / SLSR, checkIgaSweepR)
+  #IgaSweepR	<- ifelse(abs(IgaSweepR1) > 10^30, sign(IgaSweepR1) * 10^30, IgaSweepR1)
+  IgaSweepL <- ifelse(lt == 0, 0, d2GinvLdEta2 * dEtaLdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvLdEta * dEtaLdAlpha / SLSR^2)
   IgaSweepR <- ifelse(rt == 999, 0, d2GinvRdEta2 * dEtaRdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvRdEta * dEtaRdAlpha / SLSR^2)
   IgaL <- sweep(t(gMat), 2, IgaSweepL, FUN = "*") %*% ZL
   IgaR <- sweep(t(gMat), 2, IgaSweepR, FUN = "*") %*% ZR
   Iga <- IgaL - IgaR
   
-	 # Igb
+  # Igb
   Igb <- sweep(t(gMat), 2, IggSweep, FUN = "*") %*% xMat
  
-	# remove to save RAM?
-	rm(UgammaSweep)
-	rm(IggSweep)
-	rm(IgaSweepL)
-	rm(IgaSweepR)
-	rm(IgaL)
-	rm(IgaR) 
+  # remove to save RAM?
+  rm(UgammaSweep)
+  rm(IggSweep)
+  rm(IgaSweepL)
+  rm(IgaSweepR)
+  rm(IgaL)
+  rm(IgaR) 
 
   # off diagonal
   offDiag <- cbind(Igb, Iga)
-	if (length(which(is.na(offDiag))) > 0) {
+  if (length(which(is.na(offDiag))) > 0) {
     return(list(p_SKAT=NA, p_burden=NA, skatQ=NA, burdenQ=NA, sig_mat = NA, complex=NA, err=1, errMsg="bad null fit, try different starting values"))
   }
   sig_mat <- (-Igg) - (-offDiag) %*% solve(-Itt) %*% t(-offDiag)
   skatQ <- t(Ugamma) %*% Ugamma
- 	# final check for bad fit
-	if (length(which(is.na(sig_mat))) > 0 | is.na(skatQ)) {
+  # final check for bad fit
+  if (length(which(is.na(sig_mat))) > 0 | is.na(skatQ)) {
     return(list(p_SKAT=NA, p_burden=NA, skatQ=NA, burdenQ=NA, sig_mat = NA, complex=NA, err=1, errMsg="bad null fit, try different starting values"))
   } 
-	lambdaQ <- eigen(sig_mat)$values
+  lambdaQ <- eigen(sig_mat)$values
   p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
   
   burdenQ <- (sum(Ugamma))^2
