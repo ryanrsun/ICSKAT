@@ -61,7 +61,6 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
   rm(Ug_sweep2)
   rm(Ug_sweepTerm)
 
-
   # The Igg term
   ggTerm1 <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A)
   ggTerm2 <- obs_ind * as.numeric(H_R * exp(-H_R) - H_R^2 * exp(-H_R)) / A
@@ -90,12 +89,12 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
   # make sure there are no NA
   if (length(which(is.na(Igg))) > 0 | length(which(is.na(Igt))) > 0 | length(which(is.na(Itt))) > 0) {
   	return(list(lambdaQ=NA, p_SKAT=NA, p_burden=NA, skatQ=NA, Ugamma=Ugamma, null_beta = null_beta,
-              burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
+  	            burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
   } 
   sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
   if (length(which(is.na(sig_mat))) > 0) {
     return(list(lambdaQ=NA, p_SKAT=NA, p_burden=NA, skatQ=NA, Ugamma=Ugamma, null_beta = null_beta,
-              burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
+                burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
   } 
   skatQ <- t(Ugamma) %*% Ugamma
   burdenQ <- (sum(Ugamma))^2
@@ -107,23 +106,23 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
     p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=1e-7)$Qq
     # as noted in the CompQuadForm documentation, sometimes you need to play with acc or lim parameters
     if (!is.na(p_SKAT)) {
-		  if (p_SKAT > 1) {
-			  paramDF <- data.frame(expand.grid(lim = c(10000, 20000, 50000), acc=c(1e-7, 1e-6, 1e-5, 1e-4)))
-			  paramCounter <- 1
-			  while(p_SKAT > 1) {
-				  tempLim <- paramDF$lim[paramCounter]
-					tempAcc <- paramDF$acc[paramCounter]
-					p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=tempAcc, lim=tempLim)$Qq
-					paramCounter <- paramCounter + 1
-					if (paramCounter > nrow(paramDF)) {break}
-				}
-				errCode <- 22
-				errMsg <- "Had to adjust parameters on CompQuadForm"
-			}
-		} 
-		B_burden= burdenQ / sum(sig_mat);
+      if (p_SKAT > 1) {
+        paramDF <- data.frame(expand.grid(lim = c(10000, 20000, 50000), acc=c(1e-7, 1e-6, 1e-5, 1e-4)))
+        paramCounter <- 1
+        while(p_SKAT > 1) {
+          tempLim <- paramDF$lim[paramCounter]
+          tempAcc <- paramDF$acc[paramCounter]
+          p_SKAT <- CompQuadForm::davies(q=skatQ, lambda=lambdaQ, delta=rep(0,length(lambdaQ)), acc=tempAcc, lim=tempLim)$Qq
+          paramCounter <- paramCounter + 1
+          if (paramCounter > nrow(paramDF)) {break}
+        }
+        errCode <- 22
+        errMsg <- "Had to adjust parameters on CompQuadForm"
+      }
+    } 
+    B_burden= burdenQ / sum(sig_mat);
     p_burden=1-pchisq(B_burden,df=1) 
-	} else {
+  } else {
     pSKAT <- NA
     lambdaQ <- 1
     p_burden <- NA
