@@ -56,10 +56,10 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
   Ug_sweep2[which(is.na(Ug_sweep2))] <- 0
   Ug_sweepTerm <- (Ug_sweep1 - Ug_sweep2) / A
   Ugamma <- rowSums(sweep(t(gMat), 2, Ug_sweepTerm, FUN="*"))
-	# rm to save RAM
-	rm(Ug_sweep1)
-	rm(Ug_sweep2)
-	rm(Ug_sweepTerm)
+  # rm to save RAM
+  rm(Ug_sweep1)
+  rm(Ug_sweep2)
+  rm(Ug_sweepTerm)
 
 
 	# The Igg term
