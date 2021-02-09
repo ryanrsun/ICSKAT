@@ -37,8 +37,8 @@ chiSqMatchFast <- function(lambdaVec, alwaysCentral=FALSE) {
   sigmaQrho <- sqrt(2 * c2)
   s1 <- c3 / c2^(1.5)
   s2 <- c4 / c2^2
- 	# sometimes the eigenvalues are so small, c2 is too small and s2 is NaN
-	if (is.na(s2)) {return(-1)}
+  # sometimes the eigenvalues are so small, c2 is too small and s2 is NaN
+  if (is.na(s2)) {return(-1)}
 
   if (alwaysCentral | s2 >= s1^2) {
     delta <- 0

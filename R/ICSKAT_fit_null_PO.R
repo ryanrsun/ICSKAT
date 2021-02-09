@@ -34,7 +34,7 @@ ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, r
   stopSolve <- FALSE
   while( !is.nan(diffCoef) & stopSolve == FALSE & diffCoef<1000) {
    
-		# assume that you put the spline cofficients last 
+    # assume that you put the spline cofficients last 
     betaVec <- tempCoef[1:ncol(xMat)]
     alphaVec <- tempCoef[(ncol(xMat)+1):length(tempCoef)]
     
@@ -98,11 +98,11 @@ ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, r
     fullU <- c(Ubeta, Ualpha)
     
     # update
-		# sometimes fullImat is singular
-		solvedImat <- tryCatch(solve(fullImat), error=function(e) e)
-		if (class(solvedImat)[1] %in% c("simpleError")) {
-			return(list(nullCoef=NA, iter=iter, Itt=NA, err=1, errMsg = "fullImat singular, try different initial values"))
-		}
+    # sometimes fullImat is singular
+    solvedImat <- tryCatch(solve(fullImat), error=function(e) e)
+    if (class(solvedImat)[1] %in% c("simpleError")) {
+      return(list(nullCoef=NA, iter=iter, Itt=NA, err=1, errMsg = "fullImat singular, try different initial values"))
+    }
 
     newCoef <- tempCoef - t(fullU) %*% solve(fullImat)
     diffCoef <- (newCoef - tempCoef) %*% t(newCoef - tempCoef)

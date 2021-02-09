@@ -27,7 +27,7 @@
 #'
 QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, sigmaZeta=NULL, tauVec=NULL, alwaysCentral=FALSE) {
   nRho <- length(rhoVec)
-	p <- nrow(icskatOut$sig_mat)
+  p <- nrow(icskatOut$sig_mat)
 
   # this DF will also hold the Davies p-value and Qrho for each rho
   # in addition to the liu p-value and moment-matching parameters
@@ -48,15 +48,15 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, sigmaZeta=NUL
     Aeigen <- eigen(toDecomp, symmetric = TRUE, only.values = TRUE)
     tempLambda <- Aeigen$values
 
-		# so many weird things can happen with the eigenvalues
-		idx1 <- which(tempLambda >= 0)
-	  idx2 <- which(tempLambda > mean(tempLambda[idx1])/100000)
-  	if (length(idx2) <= 1) {return(-1)}
-		tempLambda <- tempLambda[idx2]
+    # so many weird things can happen with the eigenvalues
+    idx1 <- which(tempLambda >= 0)
+    idx2 <- which(tempLambda > mean(tempLambda[idx1])/100000)
+    if (length(idx2) <= 1) {return(-1)}
+    tempLambda <- tempLambda[idx2]
 
-		# liu moment matching to get the distribution
+    # liu moment matching to get the distribution
     liuMatch <- chiSqMatchFast(lambdaVec = tempLambda, alwaysCentral=alwaysCentral)
-   	if (class(liuMatch)[1] == "numeric") {return(-1)}
+    if (class(liuMatch)[1] == "numeric") {return(-1)}
 
     # SKATO uses liu by default
     if (liu) {

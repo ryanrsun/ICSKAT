@@ -25,21 +25,21 @@
 #' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
 #'
 calcScoreStats <- function(x, UgTerm, ggTerm, gtTermCommon, gtHalfL, gtHalfR, solveItt) {
-
-    # numerator of test statistic
-    numerator <- sum(UgTerm * x)
+   
+  # numerator of test statistic
+  numerator <- sum(UgTerm * x)
     
-    # variance terms
-    Igg <- sum(x^2 * ggTerm)
-    IgtCommon <- t(x) %*% gtTermCommon
-    IgtLeft <- t(x) %*% gtHalfL
-    IgtRight <- t(x) %*% gtHalfR
-    Igt <- c(IgtCommon, IgtLeft + IgtRight)
-    # variance
-    varTerm <- -Igg + t(Igt) %*% solveItt %*% Igt
+  # variance terms
+  Igg <- sum(x^2 * ggTerm)
+  IgtCommon <- t(x) %*% gtTermCommon
+  IgtLeft <- t(x) %*% gtHalfL
+  IgtRight <- t(x) %*% gtHalfR
+  Igt <- c(IgtCommon, IgtLeft + IgtRight)
+  # variance
+  varTerm <- -Igg + t(Igt) %*% solveItt %*% Igt
 		
-    # test statistic
-    testStat <- numerator^2 / varTerm
-    pval <- 1 - pchisq(testStat, df=1, lower.tail = TRUE)
-    return(c(testStat, pval))
+  # test statistic
+  testStat <- numerator^2 / varTerm
+  pval <- 1 - pchisq(testStat, df=1, lower.tail = TRUE)
+  return(c(testStat, pval))
 }
