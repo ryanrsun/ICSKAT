@@ -13,8 +13,8 @@
 #'
 construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
 
-	# number of subjects
-	n <- nrow(allTimes)
+  # number of subjects
+  n <- nrow(allTimes)
 
   # replace the 0s with NAs, then apply na.locf() to fill the missing visits with the last visit time
   # don't have to do this for the first column, because 0 in the first column will naturally just give 0 probability

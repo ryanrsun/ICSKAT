@@ -34,7 +34,7 @@ fIntegrateLiu <- function(x, muK1, sigmaK1, QrhoDF, dfK1) {
   minVec <- apply(allChoiceMat, 2, min)
 
   # no need for looping because pchisq is vectorized, unlike CompQuadForm::davies()
-	deltaX <- sqrt(2 * dfK1) * (minVec - muK1) / sigmaK1 + dfK1
-	retVec <- pchisq(deltaX, df = dfK1) * dchisq(x, df=1)
-	return(retVec)
+  deltaX <- sqrt(2 * dfK1) * (minVec - muK1) / sigmaK1 + dfK1
+  retVec <- pchisq(deltaX, df = dfK1) * dchisq(x, df=1)
+  return(retVec)
 }

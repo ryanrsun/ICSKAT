@@ -44,15 +44,15 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
   nVisits <- length(obsTimes)
   madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=(1 - probMiss)), nrow=n, ncol=nVisits)
   
-	# make sure there is at least one visit
-	nMadeVisits <- apply(madeVisit, 1, sum)
-	zeroVisits <- which(nMadeVisits == 0)
-	while (length(zeroVisits) > 0) {
-		madeVisit[zeroVisits, ] <- matrix(data=rbinom(n=length(zeroVisits) * nVisits, size=1, 
-			prob=(1 - probMiss)), nrow=length(zeroVisits), ncol=nVisits)
-		nMadeVisits <- apply(madeVisit, 1, sum)
-  	zeroVisits <- which(nMadeVisits == 0)
-	}
+  # make sure there is at least one visit
+  nMadeVisits <- apply(madeVisit, 1, sum)
+  zeroVisits <- which(nMadeVisits == 0)
+  while (length(zeroVisits) > 0) {
+    madeVisit[zeroVisits, ] <- matrix(data=rbinom(n=length(zeroVisits) * nVisits, size=1, 
+                                                  prob=(1 - probMiss)), nrow=length(zeroVisits), ncol=nVisits)
+    nMadeVisits <- apply(madeVisit, 1, sum)
+    zeroVisits <- which(nMadeVisits == 0)
+  }
 		
 	# your visit is uniformly distributed around the intended obsTime, windowHalf on each side
   visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
