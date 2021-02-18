@@ -14,12 +14,12 @@
 #'
 #' @export
 #' @examples
-#' bhFunInv <- function(x) {sqrt(2*x)}
-#' obsTimes <- seq(from=0.5, to=3.5, by=0.5)
-#'  xMat <- cbind(rnorm(n), rbinom(n=n, size=1, prob=0.5))
-#' betaVec <- c(-0.5, 0.5)
-#' etaVec <- xMat %*% betaVec
-#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTimes = obsTimes, windowHalf = 0.25, etaVec = etaVec, n=n)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTimes = obsTimes, 
+#' windowHalf = 0.1, etaVec = etaVec)
 #'
 gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", probMiss=0.1) {
 
@@ -37,11 +37,11 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
       stop("Bad model")
   }
 
-  # there is a 10% chance of missing a visit
+  # 1 - probMiss is the chance of making it to the visit
   nVisits <- length(obsTimes)
   madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=(1 - probMiss)), nrow=n, ncol=nVisits)
   
-  # make sure there is at least one visit
+  # make sure there is at least one visit for each subject
   nMadeVisits <- apply(madeVisit, 1, sum)
   zeroVisits <- which(nMadeVisits == 0)
   while (length(zeroVisits) > 0) {
@@ -51,7 +51,7 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
     zeroVisits <- which(nMadeVisits == 0)
   }
 		
-	# your visit is uniformly distributed around the intended obsTime, windowHalf on each side
+	# actual visit time is uniformly distributed around the intended obsTime, windowHalf on each side
   visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
                      MARGIN=2, STATS=obsTimes, FUN="+")
 
@@ -62,7 +62,7 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
   leftTimes <- allInts[, 1]
   rightTimes <- allInts[, 2]
   # event time indicators
-  deltaVec <- ifelse(rightTimes == 999, 0, 1)
+  obs_ind <- ifelse(rightTimes == Inf, 0, 1)
 
   # return
   return(list(deltaVec = deltaVec, tVec = tVec, leftTimes = leftTimes, rightTimes = rightTimes, allVisits=allVisits))
@@ -70,7 +70,6 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
 
 #' Called by gen_IC_data() to turn the actual outcome times and observation times into interval-censored
 #' outcomes for each subject. Apply this with mapply over a data.frame of visit times, pass in the exact times.
-#' Returns 999 instead of Inf.
 #'
 #' @param obsTimes A vector of all the times a subject is observed.
 #' @param eventTime The exact event time for the subject.
@@ -96,7 +95,7 @@ createInt <- function(obsTimes, eventTime) {
   # right end of interval
   maxIdx <- which(orderedTimes >= eventTime)
   if (length(maxIdx) == 0) {
-    maxTime <- 999
+    maxTime <- Inf
   } else {
     maxTime <- orderedTimes[min(maxIdx)]
   }

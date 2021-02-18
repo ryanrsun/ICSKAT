@@ -24,14 +24,21 @@
 #'
 #' @export
 #' @examples
-#' X <- matrix(data=rnorm(200), nrow=100)
-#' lt <- runif(n=100, min=0, max=5)
-#' rt <- lt + runif(n=100, min=0, max=5)
-#' dmats <- make_IC_dmat(X=X, lt=lt, rt=rt)
-#' ICSKAT_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat, lt=lt, rt=rt,
-#' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' dmats <- make_IC_dmat(xMat, lt, rt)
+#' ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 #'
-ICSKAT_fit_null <- function(init_beta, left_dmat, obs_ind, tpos_ind, right_dmat, lt, rt, runOnce=FALSE, checkpoint=FALSE, eps=10^(-6)) {
+ICSKAT_fit_null <- function(init_beta, left_dmat, right_dmat, obs_ind, tpos_ind, lt, rt, runOnce=FALSE, checkpoint=FALSE, eps=10^(-6)) {
 
   diff_beta <- 1
   iter <- 0

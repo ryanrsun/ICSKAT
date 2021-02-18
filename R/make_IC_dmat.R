@@ -6,27 +6,35 @@
 #' @param xMat n*p matrix of non-genetic covariates.
 #' @param lt n*1 vector with left end of intervals (min is 0).
 #' @param rt n*1 vector with right end of intervals.
+#' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
+#' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
 #' @param quant_r Quantiles of time to use in constructing the spline, pass in if doing bootstrap.
-#' @param nknots Number of knots to use for cubic spline basis (default is 1).
+#' @param nKnots Number of knots to use for cubic spline basis (default is 1).
 #'
 #' @return A list with the elements:
-#' \item{right_dmat}{n*(p+nknots+2) design matrix for right end of interval.}
-#' \item{left_dmat}{n*(p+nknots+2) design matrix for left end of interval.}
+#' \item{right_dmat}{n*(p+nKnots+2) design matrix for right end of interval.}
+#' \item{left_dmat}{n*(p+nKnots+2) design matrix for left end of interval.}
 #' \item{quant_r}{Quantiles used for constructing spline.}
 #'
 #' @export
 #' @examples
 #' xMat <- matrix(data=rnorm(200), nrow=100)
-#' lt <- runif(n=100, min=0, max=5)
-#' rt <- lt + runif(n=100, min=0, max=5)
-#' make_IC_dmat(xMat=xMat, lt=lt, rt=rt)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' make_IC_dmat(xMat = xMat, lt = lt, rt = rt, obs_ind = obs_ind, tpos_ind = tpos_ind)
 #'
-make_IC_dmat <- function(xMat, lt, rt, quant_r=NULL, nknots=1) {
+make_IC_dmat <- function(xMat, lt, rt, obs_ind, tpos_ind, quant_r=NULL, nKnots=1) {
   
   # place the knots at equally spaced quantiles
-  obs_ind <- as.numeric(rt < 999)
   if (is.null(quant_r)) {
-    quant_r <- quantile(log(rt[obs_ind == 1]), probs=seq(from=0, to=1, length.out=nknots+2))
+    quant_r <- quantile(log(rt[obs_ind == 1]), probs=seq(from=0, to=1, length.out=nKnots+2))
   }
 
   # a0 and a1 are always there
@@ -39,8 +47,8 @@ make_IC_dmat <- function(xMat, lt, rt, quant_r=NULL, nknots=1) {
   }
 
   # if lt = 0, then the cumulative hazard is necessarily 0 so set it all to 0
-  left_a0 <- ifelse(lt == 0, 0, 1)
-  left_a1 <- ifelse(lt == 0, 0, log(lt))
+  left_a0 <- ifelse(tpos_ind == 0, 0, 1)
+  left_a1 <- ifelse(tpos_ind == 0, 0, log(lt))
   if (is.null(xMat)) {
     left_dmat <- cbind(left_a0, left_a1)
   } else {
@@ -50,15 +58,15 @@ make_IC_dmat <- function(xMat, lt, rt, quant_r=NULL, nknots=1) {
   kmax <- max(quant_r)
   kmin <- min(quant_r)
   # place the knots
-  for (j in 1:nknots) {
+  for (j in 1:nKnots) {
     ej <- (kmax - quant_r[j+1]) / (kmax - kmin)
 
-    right_aj <-  ifelse(right_a1 == log(999), 999,
+    right_aj <-  ifelse(obs_ind == 0, Inf,
                         pmax(0, (right_a1-quant_r[j+1])**3) - ej*pmax(0, (right_a1-kmin)**3) -
                           (1-ej)*pmax(0, (right_a1-kmax)**3))
     right_dmat <- cbind(right_dmat, right_aj)
 
-    left_aj <-ifelse(lt == 0, 0, pmax(0, (left_a1-quant_r[j+1])**3) - ej*pmax(0, (left_a1-kmin)**3) -
+    left_aj <-ifelse(tpos_ind == 0, 0, pmax(0, (left_a1-quant_r[j+1])**3) - ej*pmax(0, (left_a1-kmin)**3) -
                              (1-ej)*pmax(0, (left_a1-kmax)**3))
     left_dmat <- cbind(left_dmat, left_aj)
   }
