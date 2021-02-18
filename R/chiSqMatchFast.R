@@ -1,9 +1,12 @@
 #' chiSqMatchFast.R
 #'
-#' Match the moments of a mixture of scaled chi-square random variables to a single non-central chi-square.
-#' For the quadratic form case where the mean of the multivariate normal is 0.
-#' @param lambdaVec Numeric vector holding the eigenvalues of the "middle" term.
-#'
+#' Match the moments of a mixture of scaled chi-square random variables to a single non-central chi-square,
+#' assumes the quadratic form case where the mean of the multivariate normal V=RV is 0.
+#' 
+#' @param lambdaVec Numeric vector holding the eigenvalues of the A term, where we are interested in x^TAX
+#' and x is multivariate normal.
+#' @param alwaysCentral Boolean determining whether to always set the noncentrality parameter to 0, as in SKAT package.
+#' 
 #' @return A list with the elements:
 #' \item{sigmaQrho}{Standard deviation of the mixture distribution}
 #' \item{muQrho}{Mean of the mixture distribution}

@@ -5,15 +5,16 @@
 #'
 #' @param lt n*1 vector of left side of time interval.
 #' @param rt n*1 vector of right side of time interval.
-#' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
-#' @param obsInd n*1 vector of whether the event was observed or right-censored (0).
+#' @param tpos_ind n*1 binary vector of whether the event was observed after follow-up started (takes value 1 if t>0, 0 otherwise).
+#' @param obsInd n*1 vector of whether the event was observed or right-censored (takes value 1 if observed or 0 if right-censored).
 #' @param xMat non-SNP covariates matrix.
-#' @param gMat n*p genotype matrix.
+#' @param gMat n*q genotype matrix.
 #' @param coxph Boolean, whether to fit Cox PH model.
-#' @param survreg Boolean, whether to fit survreg() weibull model.
+#' @param survreg Boolean, whether to fit survreg() Wiibull model.
 #'
 #' @return A list with the elements:
-#' \item{pVec}{p*1 vector of marginal SNP p-values}
+#' \item{pvalCox}{q*1 vector of marginal SNP p-values with Cox model}
+#' \item{pvalSurv}{q*1 vector of marginal SNP p-values with survreg Weibull model}
 #'
 #' @export
 #' @examples
@@ -35,7 +36,7 @@ singleSNPalt <- function(lt, rt, tpos_ind, obs_ind, xMat, gMat, coxph=TRUE, surv
   
   # make the times for Surv interval2 type
   leftTime2 <- ifelse(tpos_ind == 0, NA, lt)
-  rightTime2 <- ifelse(obs_ind == 0, Inf, rt)
+  rightTime2 <- ifelse(obs_ind == 0, NA, rt)
   
   # now apply
   p <- ncol(xMat)

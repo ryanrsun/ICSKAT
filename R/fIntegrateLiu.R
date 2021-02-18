@@ -33,7 +33,9 @@ fIntegrateLiu <- function(x, muK1, sigmaK1, QrhoDF, dfK1) {
   allChoiceMat <- (QrhoDF$qMinVec - tauX) / (1 - QrhoDF$rhoVec)
   minVec <- apply(allChoiceMat, 2, min)
 
-  # no need for looping because pchisq is vectorized, unlike CompQuadForm::davies()
+  # no need for looping because pchisq is vectorized, unlike CompQuadForm::davies().
+  # here the new chi-square RV that we are approximating kappa by has its moments determined
+  # by its degrees of freedom, which are matched to its kurtosis.
   deltaX <- sqrt(2 * dfK1) * (minVec - muK1) / sigmaK1 + dfK1
   retVec <- pchisq(deltaX, df = dfK1) * dchisq(x, df=1)
   return(retVec)

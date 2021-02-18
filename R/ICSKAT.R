@@ -1,16 +1,18 @@
 #' ICSKAT.R
 #'
-#' Calculate the test statistic and p-value for interval-censored skat.
+#' Calculate the test statistic and p-value for interval-censored SKAT.
 #'
 #' @param left_dmat n*(p+nknots+2) design matrix for left end of interval.
+#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param lt n*1 vector of left side of interval times.
+#' @param rt n*1 vector of right side of interval times.
 #' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
 #' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
-#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
 #' @param gMat n*q genotype matrix.
 #' @param null_beta (p+nknots+2)*1 vector of coefficients for null model.
 #' @param Itt (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.
-#' @param Itt (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.
 #' @param pvalue Boolean, if TRUE then find the p-value (maybe don't need it if bootstrapping, saves eigendecomposition)
+#'
 #' @return A list with the elements:
 #' \item{p_SKAT}{ICSKAT p-value}
 #' \item{p_burden}{IC burden test p-value}
@@ -18,12 +20,14 @@
 #' \item{sig_mat}{The covariance matrix of the score equations for genetic effects when treated as fixed effects}
 #' \item{skatQ}{SKAT test statistic}
 #' \item{burdenQ}{Burden test statistic}
+#' \item{Ugamma}{Score vector}
 #' \item{lambdaQ}{Vector of eigenvalues of variance matrix}
 #' \item{null_beta}{The fitted null parameters}
 #' \item{err}{Will be 0 for no error, 22 if had to adjust parameters on CompQuadForm (totally normal), or 99 if NA in variance matrix. ICSKATwrapper will return 1 here if the null fit has an error}
 #' \item{errMsg}{Explains error code, blank string if no error}
 #' @export
 #' @examples
+#' 
 #' X <- matrix(data=rnorm(200), nrow=100)
 #' lt <- runif(n=100, min=0, max=5)
 #' rt <- lt + runif(n=100, min=0, max=5)

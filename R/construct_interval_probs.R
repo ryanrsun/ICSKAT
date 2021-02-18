@@ -1,12 +1,13 @@
 #' construct_interval_probs.R
 #'
-#' Construct the probabilities of falling into each time interval for bootstrapping of interval-censored data
+#' Construct the probabilities of falling into each time interval for bootstrapping of interval-censored data.
 #'
 #' @param allTimes n*s matrix where n is number of subjects and s is all visit times for that subjects.
 #' @param dmats Output from make_IC_dmats, a list holding left_dmat and right_dmat.
 #' @param nullBeta Vector of coefficients under the null model.
 #' @param p Number of covariates in the null model.
 #' @param nKnots Number of knots in the spline.
+#' 
 #' @return n*(s+1) matrix where element (i,j) holds the probability that subject i will fail in interval j.
 #'
 #' @export

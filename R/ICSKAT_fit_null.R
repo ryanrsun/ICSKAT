@@ -5,9 +5,11 @@
 #'
 #' @param init_beta (p+nknots+2)*1 vector of coefficients to initialize the Newton-Raphson.
 #' @param left_dmat n*(p+nknots+2) design matrix for left end of interval.
+#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
 #' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
 #' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
-#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param lt n*1 vector of left interval times.
+#' @param rt n*1 vector of right interval times.
 #' @param runOnce Boolean tells the function to just go through the loop once instead of converging (to get quantites for bootstrapping).
 #' @param eps Stop when the L2 norm of the difference in model coefficients reaches this limit.
 #' @param checkpoint Boolean tells the function to print when each iteration completes.

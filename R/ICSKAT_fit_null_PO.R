@@ -5,17 +5,20 @@
 #'
 #' @param init_beta (p+nknots+2)*1 vector of coefficients to initialize the Newton-Raphson.
 #' @param left_dmat n*(p+nknots+2) design matrix for left end of interval.
+#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
 #' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
 #' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
-#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param lt n*1 vector of left side of interval times.
+#' @param rt n*1 vector of right side of interval times.
 #' @param eps Stop when the L2 norm of the difference in model coefficients reaches this limit.
 #' @param checkpoint Boolean tells the function to print when each iteration completes.
 #'
 #' @return A list with the elements:
-#' \item{beta_fit}{(p+nknots+2)*1 vector of fitted coefficients under null model.}
+#' \item{nullCoef}{(p+nknots+2)*1 vector of fitted coefficients under null model.}
 #' \item{iter}{Number of iterations needed to converge.}
 #' \item{Itt}{Fisher information matrix for the fitted coefficients.}
-#'
+#' \item{err}{err=1 if NA shows up in the calculation.}
+#' \item{IterrMsg}{Describes the error.}
 #' @export
 #' @examples
 #' X <- matrix(data=rnorm(200), nrow=100)
@@ -25,7 +28,7 @@
 #' ICSKAT_fit_null_PO(init_beta=rep(0, 5), left_dmat=dmats$left_dmat, lt=lt, rt=rt,
 #' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
 #'
-ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, rt, checkpoint=FALSE, eps=10^(-6)) {
+ICSKAT_fit_null_PO <- function(init_beta, left_dmat, right_dmat, obs_ind, tpos_ind, lt, rt, checkpoint=FALSE, eps=10^(-6)) {
   
   diffCoef <- 1
   iter <- 0
@@ -33,13 +36,9 @@ ICSKAT_fit_null_PO <- function(init_beta, ZL, ZR, xMat, obs_ind, tpos_ind, lt, r
   
   stopSolve <- FALSE
   while( !is.nan(diffCoef) & stopSolve == FALSE & diffCoef<1000) {
-   
-    # assume that you put the spline cofficients last 
-    betaVec <- tempCoef[1:ncol(xMat)]
-    alphaVec <- tempCoef[(ncol(xMat)+1):length(tempCoef)]
     
-    etaL <- ZL %*% alphaVec + xMat %*% betaVec
-    etaR <- ZR %*% alphaVec + xMat %*% betaVec
+    etaL <- left_dmat %*% tempCoef
+    etaR <- right_dmat %*% tempCoef
     
     # Survival term
     SL <- ifelse(lt == 0, 1, expit(-etaL))

@@ -4,21 +4,31 @@
 #'
 #' @param icskatOut The output list from ICSKAT().
 #' @param B Number of bootstrap replications.
-#' @param intervalProbs n*(s+1) matrix where n is number of subjects and s is number of visits, probability of falling in each interval.
+#' @param intervalProbs n*(s+1) matrix where n is number of subjects and s is the number of visits possible, probability of falling in each interval.
 #' @param allVisits n*s matrix with all the visit times for each subject.
 #' @param quant_r Quantiles of time from make_IC_dmats, to keep them constant through bootstrapping.
+#' @param seed Seed to start the bootstrapping.
 #' @param null_fit The null fit output from ICSKAT_fit_null.
 #' @param gMat Genotype matrix used in original test.
 #' @param fitAgain Boolean, whether to fit the null model again in each bootstrap.
 #' @param checkpoint Boolean, whether to print every time 100 bootstraps finish.
+#' @param downsample A number in (0, 1], will use this fraction of the bootstrap iterations to try running the test with fewer bootstraps.
 #' @param rhoVec Vector of rhos to search over in SKATO.
 #'
 #' @return A list with the elements:
-#' \item{Qrho}{Vector of SKAT test statistics, one for each rho}
-#' \item{kappaPart}{Scalar first term in kappa}
+#' \item{kurtQvec}{Vector of bootstrapped excess kurtosis of each Qrho.}
+#' \item{varQvec}{Vector of bootstrapped variance of each Qrho.}
+#' \item{meanQvec}{Vector of bootstrapped mean of each Qrho.}
+#' \item{kurtKappa}{Bootstrapped kurtosis of kappa term without xi.}
+#' \item{kurtKappaAll}{Bootstrapped kurtosis of full kappa term with xi.}
+#' \item{varKappaAll}{Bootstrapped variance of full kappa term with xi.}
+#' \item{meanKappaAll}Bootstrapped mean of full kappa term with xi.}
+#' \item{bootDF}{Matrix with B rows containing all the bootstrapped quantities over all iterations.}
+#' \item{QrhoBoot}{Matrix with B rows containing all the bootstrapped Qrho values, one column for each rho.}
+#' \item{listDS}{A list containing all of the other elements in this return list, except using the downsampled iterations.}
+#' \item{nonNA}{Number of bootstraps that did not result in NA (and thus were not removed).}
 #'
 #' @export
-#'
 ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, seed = NULL,
                               null_fit, gMat, fitAgain, checkpoint=FALSE, downsample=1, rhoVec) {
 
@@ -74,12 +84,19 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
     bootDF$pSKAT[boot_it] <- bootSKAT$p_SKAT
 
     # it turns out the kappa part can be calculated with just sig_mat and the Ugamma
+    # we're calculating u^T(I-M)ZZ^T(I-M)u, half of this is u^T(I-M)Z
+    # remember u^TZ is just the score vector since u=V^-1/2WG^Tr and Z is the upper triangular chol decomp L^T
+    # MZ is just L^TJ(J^TLL^T)^-1J^TLL^T, the first L^T multiplies with U to just result in the score vector,
+    # the inverse part is just the sum of all the elements of V, JJ^T is a matrix of ones, and then LL^T = V,
+    # so the matrix of ones times V is just a matrix with each row the same, the column sums of V.
     kappaPortion <- matrix(data=rep(colSums(bootSKAT$sig_mat), ncol(bootSKAT$sig_mat)), nrow=ncol(bootSKAT$sig_mat), byrow=TRUE) /
       sum(bootSKAT$sig_mat)
     UgammaKappa <- t(as.numeric(bootSKAT$Ugamma))  %*% kappaPortion
     kappaVec <- t(as.numeric(bootSKAT$Ugamma)) -
       UgammaKappa
     bootDF$kappa[boot_it] <- sum(kappaVec^2)
+    # the sum(kappaVec * UgammaKappa) is just 2 * u^T(I-M)Z %*% Z^TMu which is the xi part we need,
+    # remember that kappaVec is u^T(I-M)Z  and UgammaKappa is Z^TMu.
     bootDF$kappaAll[boot_it] <- bootDF$kappa[boot_it] + 2 * sum(kappaVec * UgammaKappa)
     QrhoBoot[boot_it, ] <-  (1 - rhoVec) * as.numeric(bootSKAT$skatQ) +
       rhoVec * as.numeric(bootSKAT$burdenQ)

@@ -1,8 +1,8 @@
 #'
-#' Aggregated Cauchy Assocaition Test
+#' Aggregated Cauchy Association Test
 #'
-#' A p-value combination method using the Cauchy distribution.
-#'
+#' A p-value combination method using the Cauchy distribution - copied line for line from 
+#' code provided by Yaowu Liu (yaowuliu615 AT gmail.com).
 #'
 #'
 #' @param Weights a numeric vector of non-negative weights for the combined p-values. When it is NULL, the equal weights are used.

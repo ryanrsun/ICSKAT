@@ -3,21 +3,25 @@
 #' Calculate the test statistic and p-value for interval-censored skat with PO model.
 #'
 #' @param left_dmat n*(p+nknots+2) design matrix for left end of interval.
+#' @param left_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param lt Left side of interval times.
+#' @param rt Right side of interval times.
 #' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
 #' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
-#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
 #' @param gMat n*q genotype matrix.
-#' @param null_beta (p+nknots+2)*1 vector of coefficients for null model.
+#' @param nullCoef (p+nknots+2)*1 vector of coefficients for null model.
 #' @param Itt (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.
 #'
 #' @return A list with the elements:
-#' \item{p_SKAT}{ICSKAT p-value}
-#' \item{p_burden}{IC burden test p-value}
+#' \item{p_SKAT}{ICSKAT p-value for PO model.}
+#' \item{p_burden}{IC burden test p-value for PO model.}
 #' \item{complex}{Indicator of whether the SKAT variance matrix was positive definite}
 #' \item{sig_mat}{The covariance matrix of the score equations for genetic effects when treated as fixed effects}
-#' \item{skatQ}{SKAT test statistic}
-#' \item{burdenQ}{Burden test statistic}
-#'
+#' \item{skatQ}{SKAT test statistic.}
+#' \item{burdenQ}{Burden test statistic.}
+#' \item{err}{err=1 for a bad null fit.}
+#' \item{errMsg}{Describes the error.}
+3''
 #' @export
 #' @examples
 #' X <- matrix(data=rnorm(200), nrow=100)
@@ -30,15 +34,11 @@
 #' tpos_ind = as.numeric(lt > 0), null_beta=null_fit$nullCoef, Itt=null_fit$Itt,
 #' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
 #'
-ICskatPO <- function(ZL, ZR, xMat, lt, rt, obs_ind, tpos_ind, gMat, nullCoef, Itt) {
-
-  # assume that you put the spline coefficients last  
-  betaVec <- nullCoef[1:ncol(xMat)]
-  alphaVec <- nullCoef[(ncol(xMat)+1):length(nullCoef)]
+ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, nullCoef, Itt) {
 
   # corrected
-  etaL <- ZL %*% alphaVec + xMat %*% betaVec
-  etaR <- ZR %*% alphaVec + xMat %*% betaVec
+  etaL <- left_dmat %*% nullCoef 
+  etaR <- right_dmat %*% nullCoef
   
   # Survival term
   SL <- ifelse(lt == 0, 1, expit(-etaL))

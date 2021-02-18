@@ -1,3 +1,28 @@
+#' ICSKATwrapper.R
+#'
+#' Wrapper to fit the null model and run ICSKAT all in one instead of separately - offers some functionality
+#' for error checking or using different initial values when fit fails to converge.
+#'
+#' @param left_dmat n*(p+nknots+2) design matrix for left end of interval.
+#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param initValues (p+nknots+2)*1 vector of coefficients to initialize the Newton-Raphson.
+#' @param lt Left side of interval times.
+#' @param rt Right side of interval times.
+#' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
+#' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
+#' @param gMat n*q matrix of genotypes.
+#' @param PH Boolean for whether to fit PH model (TRUE) or PO model (FALSE).
+#' @param nKnots Number of knots in the spline.
+#' @param maxIter Number of times to try the fit if initial values do not lead to convergence.
+#' @param eps Difference in L2 norm of fitted null coefficients that stops the Newton Raphson.
+#' @param runOnce Boolean, if true then just go through the algorithm once with the initial 
+#' values for coefficients, updating the variance matrix, useful for bootstrapping.
+#' @param returnNull Return a list with the skat output and null model, or just return the skat output (FALSE)?
+#'
+#' @return Either a list with skatOutput and nullFit (two lists), or just skatOutput.
+#'
+#' @export
+#'
 ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, 
                           PH=TRUE, nKnots=1, maxIter=3, eps=10^(-6), runOnce = FALSE, returnNull = FALSE) {
 

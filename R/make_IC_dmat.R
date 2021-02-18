@@ -6,12 +6,14 @@
 #' @param xMat n*p matrix of non-genetic covariates.
 #' @param lt n*1 vector with left end of intervals (min is 0).
 #' @param rt n*1 vector with right end of intervals.
-#' @param nknots number of knots to use for cubic spline basis (default is 1).
+#' @param quant_r Quantiles of time to use in constructing the spline, pass in if doing bootstrap.
+#' @param nknots Number of knots to use for cubic spline basis (default is 1).
 #'
 #' @return A list with the elements:
 #' \item{right_dmat}{n*(p+nknots+2) design matrix for right end of interval.}
 #' \item{left_dmat}{n*(p+nknots+2) design matrix for left end of interval.}
-#'#'
+#' \item{quant_r}{Quantiles used for constructing spline.}
+#'
 #' @export
 #' @examples
 #' xMat <- matrix(data=rnorm(200), nrow=100)

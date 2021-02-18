@@ -3,14 +3,14 @@
 #' Calculate the test statistic, distribution, and p-value for each value of Krho in SKATO.
 #'
 #' @param rhoVec Numeric vector of the rho values to use in SKATO.
-#' @param null_beta The output (a list) from a call to the ICSKAT() function.
-#' @param liu Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values.
-#' @param kurtQvec Vector of kurtosis of Qrho, from bootstrapping.
-#' @param sigmaZeta Standard deviation of zeta term, needed if using kurtosis from bootstrapping.
-#' @param tauVec Vector of tau(rho) terms, needed if using kurtosis from bootstrapping.
+#' @param icskatOut The output list returned from  a call to ICSKAT().
+#' @param liu Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values for each Qrho. 
+#' Default is Liu, following SKAT package. If wanting to use bootstrap moments for Qrho, need to use Liu method.
+#' @param bootstrapOut The output (a list) from a call the ICSKATO_bootstrap() function, holding moments for Qrho.
 #' @param alwaysCentral A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.
-#' @return Data frame holding the pvalue + test statistic for each fixed rho, the matched noncentrality + degree of freedom parameters
-#' according to the Liu method, and the mean and variance of each Qrho.
+#' @return Data frame holding the SKAT pvalue + test statistic for each fixed rho, the matched noncentrality + degree of freedom parameters
+#' for each fixed rho (using both bootstrap and analytic calculation), and the mean and variance of each Qrho using both
+#' bootstrap and analytic calculation.
 #'
 #' @export
 #' @examples
@@ -25,7 +25,7 @@
 #' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
 #' QrhoIC(rhoVec = seq(from=0, to=1, by=0.1), icskatOut = myoutput)
 #'
-QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, sigmaZeta=NULL, tauVec=NULL, alwaysCentral=FALSE) {
+QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, alwaysCentral=FALSE) {
   nRho <- length(rhoVec)
   p <- nrow(icskatOut$sig_mat)
 

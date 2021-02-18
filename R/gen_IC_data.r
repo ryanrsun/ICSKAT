@@ -7,13 +7,10 @@
 #' @param obsTimes Vector of the intended observation times.
 #' @param windowHalf The amount of time before or after the intended obsTimes that a visit might take place.
 #' @param etaVec n*1 linear predictor in either the proportional odds or proportional hzards model.
+#' @param mod Either "PH" to generate under PH model or "PO" to generate under PO model.
 #' @param probMiss The probability of missing any given visit.
 #'
-#' @return A list with the elements:
-#' \item{deltaVec}{n*1 indicator of whether the event has happened for each subject}
-#' \item{tVec}{n*1 vector of exact event times}
-#' \item{leftTimes}{n*1 vector of left side of interval for each subject}
-#' \item{rightTimes}{n*1 vector of right side of interval for each subject}
+#' @return n*2 matrix with the interval times for each subject.
 #'
 #' @export
 #' @examples

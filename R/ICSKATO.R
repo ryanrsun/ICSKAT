@@ -4,28 +4,30 @@
 #'
 #' @param rhoVec Vector of rhos to search over.
 #' @param icskatOut The output list from ICSKAT().
+#' @param useMixtureKurt Boolean for whether to use the mixture formula to estimate the kurtosis of Qrho when we
+#' have bootstrap results. Default is false, instead we just use the bootstraped kurtosis of Qrho.
 #' @param liu Boolean for whether to use Liu moment matching approximation for p-value of each Qrho (as opposed to Davies).
+#' If Davies, cannot use bootstrapped moments of Qrho.
 #' @param liuIntegrate Boolean for whether to use Liu moment matching approximation integration in SKATO p-value (as opposed to Davies).
-#' @param kurtQvec Vector of kurtosis of Qrho, from bootstrapping.
-#' @param kurtKappa Kurtosis for first part of kappa term, from bootstrapping.
+#' @param bootstrapOut Output list from call to ICSKATO_bootstrap().
 #' @param alwaysCentral A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.
 #'
 #' @return A list with the elements:
-#' \item{pval}{SKATO p-value}
-#' \item{QrhoDF}{Data frame containing the distribution and p-value for each Krho.}
-#' \item{r}{The rank of the cholesky decomposition of the kappa part}
-#' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false)}
-#' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF, 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0 unless burden is 1)}
-#' \item{errMsg}{Explains the error code}
-#' \item{correctedP}{Will be the same value as pval when there is an issue with one of the p-value components of SKATO}
-#' \item{lambdaKurtK1}{Kurtosis of kappa term using eigenvalues}
-#' \item{lambdaSigmaK1}{Standard deviation of kappa term using eigenvalues}
-#' \item{lambdaMuK1}{Mean of kappa term using eigenvalues}
-#' \item{bootKurtKappaAll}{Kurtosis of kappa term using bootstrap data}
-#' \item{bootSigmaKappaAll}{Standard deviation of kappa term using bootstrap data}
-#' \item{bootMuKappaAll}{Mean of kappa term using bootstrap data}
-#' \item{mixDFVec}{Degrees of freedom of the mixture kappa term if following SKAT package procedure, we don't really use it} 
-#'
+#' \item{pval}{SKATO p-value.}
+#' \item{correctedP}{Corrected SKATO p-value, which will be the same as pval when not all Qrho values produce
+#' a p-value between 0 and 1 (e.g. sometimes it will be 0). Correction is same as SKAT package correction..}
+#' \item{QrhoDF}{Data frame containing the distribution and p-value for each Qrho.}
+#' \item{r}{The rank of the cholesky decomposition of the sig_mat returned from ICSKAT(), i.e. V^-1/2 or Z.}
+#' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false).}
+#' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF, 
+#' 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0 unless burden is 1).}
+#' \item{lambdaKurtK1}{Kurtosis of kappa term minus xi using eigenvalues, we use it to approximate the kurtosis of the entire kappa.}
+#' \item{lambdaSigmaK1}{Standard deviation of kappa term, including xi, using eigenvalues.}
+#' \item{lambdaMuK1}{Mean of kappa term using eigenvalues.}
+#' \item{bootKurtKappaAll}{Kurtosis of entire kappa term, including xi, using bootstrap data}
+#' \item{bootSigmaKappaAll}{Standard deviation of entire kappa term using bootstrap data.}
+#' \item{bootMuKappaAll}{Mean of entire kappa term using bootstrap data.}
+#' \item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it} 
 #' @export
 #'
 ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , useMixtureKurt = FALSE,
@@ -77,12 +79,15 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   # faster, saves n^2 multiplications in getting kappaSubtract
   forDiag <- t(zBar) %*% zMat / sum(zBar^2)
   kappaSubtract <- matrix(data=rep(zBar, p), ncol=p, byrow=FALSE) %*% diag(x = forDiag[1, ])
+  # just write it out or trust me that kappaHalf = (I-M)Z
   kappaHalf <- zMat - kappaSubtract
+  # we need the eigenvalues of Z^T(I-M)Z which is equal to Z^T(I-M)(I-M)Z
   kappaMat <- t(kappaHalf) %*% kappaHalf
   # sometimes sig_mat is just 0
   if (length(which(is.na(kappaMat))) > 0) { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
 
   # keep according to SKAT package procedure
+  # it's a little confusing because kappa lambda does not consider the xi part of kappa
   kappaLambda <- eigen(kappaMat, symmetric = TRUE, only.values = TRUE)$values
   idx1 <- which(kappaLambda >= 0)
   idx2 <- which(kappaLambda > mean(kappaLambda[idx1])/100000)
@@ -91,7 +96,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   } 
   kappaLambda <- kappaLambda[idx2]
 
-  # the moments of the kappa term
+  # the moments of the kappa term minus the xi term
   lambdaMuK1 <-sum(kappaLambda)
   sigmaZeta <- 2 * sqrt(sum(t(kappaHalf) %*% kappaHalf * t(kappaSubtract) %*% kappaSubtract))
   lambdaSigmaK1 <- sqrt(2 * sum(kappaLambda^2) + sigmaZeta^2)
@@ -101,6 +106,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     sigmaK1 <- lambdaSigmaK1
     kurtK1 <- lambdaKurtK1
   } else {  # if bootstrap available, always use those for moments
+    # here we are getting the moments of the entire kappa term, with the xi term, so likely more accruate
     muK1 <- meanKappaAll
     sigmaK1 <- sqrt(varKappaAll)
     kurtK1 <- kurtKappaAll
@@ -164,6 +170,13 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     } else {
       qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoBoot[rho_it] / sigmaX) + QrhoDF$muQrhoBoot[rho_it]
     }
+    # the reason we are using so many different moments: we are approximating a centered and scaled Qrho 
+    # (where the Qrho moments come in) by another centered and scaled chi-square variable (call it X_df),
+    # where X_df has a degree of freedom matched to the kurtosis of Qrho (and thus the mean of X_df is different
+    # from the mean of Qrho, because the mean of Qrho is calculated from bootstrapping Qrho, and the mean of X_df
+    # is calculated from bootstrapping the kurtosis of Qrho and dividing that by 12).
+    # so for something like Pr(Q < q1) = a, we need to center and scale Q and q1, then replace standardized Q
+    # by standardized X_df.
   }
 
   # append to QrhoDF
