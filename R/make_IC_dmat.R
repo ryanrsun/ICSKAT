@@ -39,7 +39,7 @@ make_IC_dmat <- function(xMat, lt, rt, obs_ind, tpos_ind, quant_r=NULL, nKnots=1
 
   # a0 and a1 are always there
   right_a0 <- 1
-  right_a1 <- log(rt)
+  right_a1 <- ifelse(obs_ind == 0, 999, log(rt))
   if (is.null(xMat)) {
     right_dmat <- cbind(right_a0, right_a1)
   } else {
@@ -61,13 +61,13 @@ make_IC_dmat <- function(xMat, lt, rt, obs_ind, tpos_ind, quant_r=NULL, nKnots=1
   for (j in 1:nKnots) {
     ej <- (kmax - quant_r[j+1]) / (kmax - kmin)
 
-    right_aj <-  ifelse(obs_ind == 0, Inf,
-                        pmax(0, (right_a1-quant_r[j+1])**3) - ej*pmax(0, (right_a1-kmin)**3) -
-                          (1-ej)*pmax(0, (right_a1-kmax)**3))
+    right_aj <-  ifelse(obs_ind == 0, 999,
+                        pmax(0, (right_a1 - quant_r[j+1])**3) - ej * pmax(0, (right_a1 - kmin)**3) -
+                          (1 - ej) * pmax(0, (right_a1 - kmax)**3))
     right_dmat <- cbind(right_dmat, right_aj)
 
-    left_aj <-ifelse(tpos_ind == 0, 0, pmax(0, (left_a1-quant_r[j+1])**3) - ej*pmax(0, (left_a1-kmin)**3) -
-                             (1-ej)*pmax(0, (left_a1-kmax)**3))
+    left_aj <- ifelse(tpos_ind == 0, 0, pmax(0, (left_a1 - quant_r[j+1])**3) - ej * pmax(0, (left_a1 - kmin)**3) -
+                             (1 - ej) * pmax(0, (left_a1 - kmax)**3))
     left_dmat <- cbind(left_dmat, left_aj)
   }
 
