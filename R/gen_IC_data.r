@@ -10,7 +10,13 @@
 #' @param mod Either "PH" to generate under PH model or "PO" to generate under PO model.
 #' @param probMiss The probability of missing any given visit.
 #'
-#' @return n*2 matrix with the interval times for each subject.
+#' @return A list with the elements:
+#' \item{obs_ind}{n*1 vector of whether the event was observed before last follow-up.}
+#' \item{tpos_ind}{n*1 vector of whether the event was observed after follow-up started (t>0).}
+#' \item{tVec}{Fisher information matrix for the fitted coefficients.}
+#' \item{leftTimes}{n*1 vector of left side of interval times.}
+#' \item{rightTimes}{n*1 vector of right side of interval times.}
+#' \item{tVec}{n*1 vector of exact event times.}
 #'
 #' @export
 #' @examples
@@ -64,9 +70,11 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
   rightTimes <- allInts[, 2]
   # event time indicators
   obs_ind <- ifelse(rightTimes == Inf, 0, 1)
+  tpos_ind <- ifelse(leftTimes == 0, 0, 1)
 
   # return
-  return(list(deltaVec = deltaVec, tVec = tVec, leftTimes = leftTimes, rightTimes = rightTimes, allVisits=allVisits))
+  return(list(obs_ind = obs_ind, tpos_ind = tpos_ind, tVec = tVec, leftTimes = leftTimes, 
+              rightTimes = rightTimes, allVisits=allVisits))
 }
 
 #' Called by gen_IC_data() to turn the actual outcome times and observation times into interval-censored
