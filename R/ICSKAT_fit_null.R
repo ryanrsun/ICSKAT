@@ -18,9 +18,9 @@
 #' \item{beta_fit}{(p+nknots+2)*1 vector of fitted coefficients under null model.}
 #' \item{iter}{Number of iterations needed to converge.}
 #' \item{Itt}{Fisher information matrix for the fitted coefficients.}
-#' \item{diff_beta}{Difference between beta_fit and previous iteration of the vector, can be checked for errors}
-#' \item{err}{Value is 0 if no errors and 1 if Itt is singular, can't perform fit}
-#' \item{err}{Empty string if err=0, explains error if there is one}
+#' \item{diff_beta}{Difference between beta_fit and previous iteration of the vector, can be checked for errors.}
+#' \item{err}{Value is 0 if no errors and 1 if Itt is singular, can't perform fit.}
+#' \item{errMsg}{Empty string if err=0, explains error if there is one.}
 #'
 #' @export
 #' @examples

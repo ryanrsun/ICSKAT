@@ -21,7 +21,7 @@ matchVisit <- function(draw, visitTimes) {
   if (idx == 1) {
     return(c(0, visitTimes[1]))
   } else if (idx == nVisits + 1) {
-    return(c(visitTimes[nVisits], 999))
+    return(c(visitTimes[nVisits], Inf))
   } else {
     return(c(visitTimes[idx-1], c(visitTimes[idx])))
   }

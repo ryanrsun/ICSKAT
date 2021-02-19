@@ -17,11 +17,25 @@
 #' @param eps Difference in L2 norm of fitted null coefficients that stops the Newton Raphson.
 #' @param runOnce Boolean, if true then just go through the algorithm once with the initial 
 #' values for coefficients, updating the variance matrix, useful for bootstrapping.
-#' @param returnNull Return a list with the skat output and null model, or just return the skat output (FALSE)?
+#' @param returnNull Return a list with the skat output and null model, or just return the skat output (FALSE).
 #'
 #' @return Either a list with skatOutput and nullFit (two lists), or just skatOutput.
 #'
 #' @export
+#' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' dmats <- make_IC_dmat(xMat, lt, rt)
+#' ICSKATwrapper(left_dmat = dmats$left_dmat, right_dmat = dmats$right_dmat, initValues = rep(0, ncol(xMat) + 3),
+#' lt = lt, rt = rt, obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, returnNull = TRUE)
 #'
 ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, 
                           PH=TRUE, nKnots=1, maxIter=3, eps=10^(-6), runOnce = FALSE, returnNull = FALSE) {

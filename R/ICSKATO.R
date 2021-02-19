@@ -29,10 +29,28 @@
 #' \item{bootMuKappaAll}{Mean of entire kappa term using bootstrap data.}
 #' \item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it} 
 #' @export
-#'
+#' @examples
+#' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' dmats <- make_IC_dmat(xMat, lt, rt)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+#' icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
+#' ICSKATO(icskatOut = icskatOut)
 ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , useMixtureKurt = FALSE,
                     liu=TRUE, liuIntegrate=FALSE, bootstrapOut = NULL,  alwaysCentral=FALSE) {
 
+  # load bootstrap information
   if (!is.null(bootstrapOut)) {
     kurtQvec = bootstrapOut$kurtQvec
     varQvec = bootstrapOut$varQvec

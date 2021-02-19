@@ -11,7 +11,26 @@
 #' @return n*(s+1) matrix where element (i,j) holds the probability that subject i will fail in interval j.
 #'
 #' @export
-#'
+#' @examples
+#' 
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' dmats <- make_IC_dmat(xMat, lt, rt)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+#' ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
+#' intervalProbOutput <- construct_interval_probs(allTimes = outcomeDat$allVisits, dmats = dmats,
+#' nullBeta = nullFit$beta_fit, p = ncol(xMat), nKnots=1)
+#' 
 construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
 
   # number of subjects

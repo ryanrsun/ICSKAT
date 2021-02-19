@@ -11,19 +11,6 @@
 #' @return The value of the integrand at x.
 #'
 #' @export
-#' @examples
-#' X <- matrix(data=rnorm(200), nrow=100)
-#' lt <- runif(n=100, min=0, max=5)
-#' rt <- lt + runif(n=100, min=0, max=5)
-#' dmats <- make_IC_dmat(X=X, lt=lt, rt=rt)
-#' null_fit <- skat_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat,
-#' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
-#' myoutput <- ICskat(left_dmat=dmats$left_dmat, right_dmat=dmats$right_dmat, obs_ind=rep(1, n),
-#' tpos_ind = as.numeric(lt > 0), null_beta=null_fit$beta_fit, Itt=null_fit$Itt,
-#' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
-#' QrhoIC(rhoVec = seq(from=0, to=1, by=0.1), icskatOut = myoutput)
-#' fIntegrateLiu(x=1, muK1=10, sigmaK1=2, kappaLambda = rep(1, 10), QrhoDF=QrhoDF, dfK1 = 10)
-#'
 fIntegrateLiu <- function(x, muK1, sigmaK1, QrhoDF, dfK1) {
 
   # needs to be able to take vectorized x

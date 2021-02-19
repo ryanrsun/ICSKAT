@@ -15,21 +15,27 @@
 #'
 #' @export
 #' @examples
-#' X <- matrix(data=rnorm(200), nrow=100)
-#' lt <- runif(n=100, min=0, max=5)
-#' rt <- lt + runif(n=100, min=0, max=5)
-#' dmats <- make_IC_dmat(X=X, lt=lt, rt=rt)
-#' null_fit <- skat_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat,
-#' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
-#' ICskat(left_dmat=dmats$left_dmat, right_dmat=dmats$right_dmat, obs_ind=rep(1, n),
-#' tpos_ind = as.numeric(lt > 0), null_beta=null_fit$beta_fit, Itt=null_fit$Itt,
-#' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
-#' Rrho <- matrix(data=tempRho, nrow=10, ncol=10)
-#' diag(Rrho) <- 1
-#' toDecomp <- Rrho %*% icskatOut$sig_mat
-#' Aeigen <- eigen(toDecomp, symmetric = TRUE, only.values = TRUE)
-#' tempLambda <- Aeigen$values
-#' chiSqMatchFast(lambdaVec = tempLambda)
+#' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' dmats <- make_IC_dmat(xMat, lt, rt)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+#' icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
+#' kRho <- matrix(data=0.5, nrow=10, ncol=10)
+#' diag(kRho) <- 1
+#' toDecomp <- t(icskatOut$Ugamma) %*% kRho %*% icskatOut$Ugamma 
+#' tempEvals <- eigen(toDecomp, symmetric = TRUE, only.values = TRUE)$values
+#' chiSqMatchFast(lambdaVec = tempEvals)
 #'
 chiSqMatchFast <- function(lambdaVec, alwaysCentral=FALSE) {
   c1 <- sum(lambdaVec)

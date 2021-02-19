@@ -3,13 +3,13 @@
 #' Calculate the test statistic and p-value for interval-censored skat with PO model.
 #'
 #' @param left_dmat n*(p+nknots+2) design matrix for left end of interval.
-#' @param left_dmat n*(p+nknots+2) design matrix for right end of interval.
-#' @param lt Left side of interval times.
-#' @param rt Right side of interval times.
+#' @param right_dmat n*(p+nknots+2) design matrix for right end of interval.
+#' @param lt n*1 vector of left side of interval times.
+#' @param rt n*1 vector of right side of interval times.
 #' @param obs_ind n*1 vector of whether the event was observed before last follow-up.
 #' @param tpos_ind n*1 vector of whether the event was observed after follow-up started (t>0).
 #' @param gMat n*q genotype matrix.
-#' @param nullCoef (p+nknots+2)*1 vector of coefficients for null model.
+#' @param null_beta (p+nknots+2)*1 vector of coefficients for null model.
 #' @param Itt (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.
 #'
 #' @return A list with the elements:
@@ -24,25 +24,32 @@
 3''
 #' @export
 #' @examples
-#' X <- matrix(data=rnorm(200), nrow=100)
-#' lt <- runif(n=100, min=0, max=5)
-#' rt <- lt + runif(n=100, min=0, max=5)
-#' dmats <- make_IC_dmat(X=X, lt=lt, rt=rt)
-#' null_fit <- skat_fit_null_PO(init_beta=rep(0, 5), left_dmat=dmats$left_dmat,
-#' right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
-#' ICskatPO(left_dmat=dmats$left_dmat, right_dmat=dmats$right_dmat, obs_ind=rep(1, n),
-#' tpos_ind = as.numeric(lt > 0), null_beta=null_fit$nullCoef, Itt=null_fit$Itt,
-#' gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
+#' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' dmats <- make_IC_dmat(xMat, lt, rt)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+#' ICskatPO(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
 #'
-ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, nullCoef, Itt) {
+ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_beta, Itt) {
 
   # corrected
-  etaL <- left_dmat %*% nullCoef 
-  etaR <- right_dmat %*% nullCoef
+  etaL <- left_dmat %*% null_beta 
+  etaR <- right_dmat %*% null_beta
   
   # Survival term
-  SL <- ifelse(lt == 0, 1, expit(-etaL))
-  SR <- ifelse(rt == 999, 0, expit(-etaR))
+  SL <- ifelse(tpos_ind == 0, 1, expit(-etaL))
+  SR <- ifelse(obs_ind == 0, 0, expit(-etaR))
   SR[!is.finite(SR)] <- 0
   SLSR <- SL - SR
   # sometimes A is 0
@@ -52,8 +59,8 @@ ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, nul
   SLSR[which(SLSR == 0)] <- min(SLSR[which(SLSR > 0)])
  
   # if lt=0 or rt=999, we swap 0 because -expit(etaL) is the survival and should be 0 or 1. 
-  dGinvLdEta <- ifelse(lt == 0, 0, -expit(-etaL) * (1 - expit(-etaL)))
-  dGinvRdEta <- ifelse(rt == 999, 0, -expit(-etaR) * (1 - expit(-etaR))) 
+  dGinvLdEta <- ifelse(tpos_ind == 0, 0, -expit(-etaL) * (1 - expit(-etaL)))
+  dGinvRdEta <- ifelse(obs_ind == 0, 0, -expit(-etaR) * (1 - expit(-etaR))) 
   # put a 1 in here to remind that we've taken the ZL and ZR out of these two terms
   # these are all terms that will be put in the final matrix as sweep(t(Z), 2, toSweep) %*% Z
   dEtaLdAlpha <- 1 
@@ -67,8 +74,8 @@ ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, nul
   numR <- ifelse(exp(-2 * etaR) == Inf, 0, checkNumR)
   checkNumL <- exp(-etaL) - exp(-2 * etaL)
   numL <- ifelse(exp(-2 * etaL) == Inf, 0, checkNumL)
-  d2GinvLdEta2 <- ifelse(lt == 0, 0, numL / (1 + exp(-etaL))^3)  
-  d2GinvRdEta2 <- ifelse(rt == 999, 0, numR / (1 + exp(-etaR))^3)
+  d2GinvLdEta2 <- ifelse(tpos_ind == 0, 0, numL / (1 + exp(-etaL))^3)  
+  d2GinvRdEta2 <- ifelse(obs_ind == 0, 0, numR / (1 + exp(-etaR))^3)
  
   # score vector
   # this works fine with minimal checking because when SL or SR is very small, both the numerator and denominator are on the
@@ -97,8 +104,8 @@ ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, nul
   #checkIgaSweepR <- ifelse(rt == 999, 0, d2GinvRdEta2 * dEtaRdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvRdEta * dEtaRdAlpha / SLSR^2)
   #IgaSweepR1 <- ifelse(checkIgaSweepR > 10^100 | is.na(checkIgaSweepR), d2GinvRdEta2 * dEtaRdAlpha / SLSR - dGinvRdEta * dEtaRdAlpha / SLSR, checkIgaSweepR)
   #IgaSweepR	<- ifelse(abs(IgaSweepR1) > 10^30, sign(IgaSweepR1) * 10^30, IgaSweepR1)
-  IgaSweepL <- ifelse(lt == 0, 0, d2GinvLdEta2 * dEtaLdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvLdEta * dEtaLdAlpha / SLSR^2)
-  IgaSweepR <- ifelse(rt == 999, 0, d2GinvRdEta2 * dEtaRdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvRdEta * dEtaRdAlpha / SLSR^2)
+  IgaSweepL <- ifelse(tpos_ind == 0, 0, d2GinvLdEta2 * dEtaLdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvLdEta * dEtaLdAlpha / SLSR^2)
+  IgaSweepR <- ifelse(obs_ind == 0, 0, d2GinvRdEta2 * dEtaRdAlpha / SLSR - (dGinvLdEta - dGinvRdEta) * dGinvRdEta * dEtaRdAlpha / SLSR^2)
   IgaL <- sweep(t(gMat), 2, IgaSweepL, FUN = "*") %*% ZL
   IgaR <- sweep(t(gMat), 2, IgaSweepR, FUN = "*") %*% ZR
   Iga <- IgaL - IgaR

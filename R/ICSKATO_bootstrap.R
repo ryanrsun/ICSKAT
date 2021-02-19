@@ -29,6 +29,28 @@
 #' \item{nonNA}{Number of bootstraps that did not result in NA (and thus were not removed).}
 #'
 #' @export
+#' @examples
+#' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+#' xMat <- matrix(data=rnorm(200), nrow=100)
+#' bhFunInv <- function(x) {x}
+#' obsTimes <- 1:5
+#' etaVec <- rep(0, 100)
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' probMiss = 0.1, etaVec = etaVec)
+#' lt <- outcomeDat$leftTimes
+#' rt <- outcomeDat$rightTimes
+#' tpos_ind <- as.numeric(lt > 0)
+#' obs_ind <- as.numeric(rt != Inf)
+#' dmats <- make_IC_dmat(xMat, lt, rt)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+#' icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
+#' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
+#' intervalProbOutput <- construct_interval_probs(allTimes = outcomeDat$allVisits, dmats = dmats,
+#' nullBeta = nullFit$beta_fit, p = ncol(xMat), nKnots=1)
+#' ICSKATO_bootstrap(icskatOut = icSkatOut, B = 100, intervalProbs = intervalProbOutput$probMat,
+#' allVisits = intervalProbOutput$allTimesFilled, quant_r = dmats$quant_r, seed = 0, 
+#' null_fit = nullFit, gMat = gMat, fitAgain = TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1))
 ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, seed = NULL,
                               null_fit, gMat, fitAgain, checkpoint=FALSE, downsample=1, rhoVec) {
 
