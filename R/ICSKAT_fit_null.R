@@ -48,16 +48,16 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, right_dmat, obs_ind, tpos_ind,
     H_L <- exp(left_dmat %*% temp_beta)
     H_R <- exp(right_dmat %*% temp_beta)
     # Survival term
-    SL <- ifelse(lt == 0, 1, exp(-H_L))
-    SR <- ifelse(rt == 999, 0, exp(-H_R))
+    SL <- ifelse(tpos_ind == 0, 1, exp(-H_L))
+    SR <- ifelse(obs_ind == 0, 0, exp(-H_R))
     SR[!is.finite(SR)] <- 0
     A <- SL - SR
     # sometimes A is 0
     A[which(A == 0)] <- min(A[which(A > 0)])
 
     # score vector
-    U_term1 <- sweep(t(left_dmat), 2, ifelse(lt == 0, 0, exp(-H_L) * -H_L), FUN="*")
-    U_term2 <- sweep(t(right_dmat), 2, ifelse(rt == 999, 0, exp(-H_R) * -H_R), FUN="*")
+    U_term1 <- sweep(t(left_dmat), 2, ifelse(tpos_ind == 0, 0, exp(-H_L) * -H_L), FUN="*")
+    U_term2 <- sweep(t(right_dmat), 2, ifelse(obs_ind == 0, 0, exp(-H_R) * -H_R), FUN="*")
     U_term2[is.na(U_term2)] <- 0
     uVec <- rowSums( sweep(U_term1 - U_term2, 2, A, FUN="/") )
 
