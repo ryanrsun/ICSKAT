@@ -20,10 +20,10 @@
 #' \item{kurtQvec}{Vector of bootstrapped excess kurtosis of each Qrho.}
 #' \item{varQvec}{Vector of bootstrapped variance of each Qrho.}
 #' \item{meanQvec}{Vector of bootstrapped mean of each Qrho.}
-#' \item{kurtKappa}{Bootstrapped kurtosis of kappa term without xi.}
-#' \item{kurtKappaAll}{Bootstrapped kurtosis of full kappa term with xi.}
-#' \item{varKappaAll}{Bootstrapped variance of full kappa term with xi.}
-#' \item{meanKappaAll}Bootstrapped mean of full kappa term with xi.}
+#' \item{kurtKappa}{Bootstrapped kurtosis of kappa term without zeta.}
+#' \item{kurtKappaAll}{Bootstrapped kurtosis of full kappa term with zeta.}
+#' \item{varKappaAll}{Bootstrapped variance of full kappa term with zeta.}
+#' \item{meanKappaAll}Bootstrapped mean of full kappa term with zeta.}
 #' \item{bootDF}{Matrix with B rows containing all the bootstrapped quantities over all iterations.}
 #' \item{QrhoBoot}{Matrix with B rows containing all the bootstrapped Qrho values, one column for each rho.}
 #' \item{listDS}{A list containing all of the other elements in this return list, except using the downsampled iterations.}
@@ -119,7 +119,7 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
     kappaVec <- t(as.numeric(bootSKAT$Ugamma)) -
       UgammaKappa
     bootDF$kappa[boot_it] <- sum(kappaVec^2)
-    # the sum(kappaVec * UgammaKappa) is just 2 * u^T(I-M)Z %*% Z^TMu which is the xi part we need,
+    # the sum(kappaVec * UgammaKappa) is just 2 * u^T(I-M)Z %*% Z^TMu which is the zeta part we need,
     # remember that kappaVec is u^T(I-M)Z  and UgammaKappa is Z^TMu.
     bootDF$kappaAll[boot_it] <- bootDF$kappa[boot_it] + 2 * sum(kappaVec * UgammaKappa)
     QrhoBoot[boot_it, ] <-  (1 - rhoVec) * as.numeric(bootSKAT$skatQ) +

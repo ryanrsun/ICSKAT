@@ -21,10 +21,10 @@
 #' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false).}
 #' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF, 
 #' 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0 unless burden is 1).}
-#' \item{lambdaKurtK1}{Kurtosis of kappa term minus xi using eigenvalues, we use it to approximate the kurtosis of the entire kappa.}
-#' \item{lambdaSigmaK1}{Standard deviation of kappa term, including xi, using eigenvalues.}
+#' \item{lambdaKurtK1}{Kurtosis of kappa term minus zeta using eigenvalues, we use it to approximate the kurtosis of the entire kappa.}
+#' \item{lambdaSigmaK1}{Standard deviation of kappa term, including zeta, using eigenvalues.}
 #' \item{lambdaMuK1}{Mean of kappa term using eigenvalues.}
-#' \item{bootKurtKappaAll}{Kurtosis of entire kappa term, including xi, using bootstrap data}
+#' \item{bootKurtKappaAll}{Kurtosis of entire kappa term, including zeta, using bootstrap data}
 #' \item{bootSigmaKappaAll}{Standard deviation of entire kappa term using bootstrap data.}
 #' \item{bootMuKappaAll}{Mean of entire kappa term using bootstrap data.}
 #' \item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it} 
@@ -105,7 +105,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   if (length(which(is.na(kappaMat))) > 0) { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
 
   # keep according to SKAT package procedure
-  # it's a little confusing because kappa lambda does not consider the xi part of kappa
+  # it's a little confusing because kappa lambda does not consider the zeta part of kappa
   kappaLambda <- eigen(kappaMat, symmetric = TRUE, only.values = TRUE)$values
   idx1 <- which(kappaLambda >= 0)
   idx2 <- which(kappaLambda > mean(kappaLambda[idx1])/100000)
@@ -114,7 +114,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   } 
   kappaLambda <- kappaLambda[idx2]
 
-  # the moments of the kappa term minus the xi term
+  # the moments of the kappa term minus the zeta term
   lambdaMuK1 <-sum(kappaLambda)
   sigmaZeta <- 2 * sqrt(sum(t(kappaHalf) %*% kappaHalf * t(kappaSubtract) %*% kappaSubtract))
   lambdaSigmaK1 <- sqrt(2 * sum(kappaLambda^2) + sigmaZeta^2)
@@ -124,7 +124,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     sigmaK1 <- lambdaSigmaK1
     kurtK1 <- lambdaKurtK1
   } else {  # if bootstrap available, always use those for moments
-    # here we are getting the moments of the entire kappa term, with the xi term, so likely more accruate
+    # here we are getting the moments of the entire kappa term, with the zeta term, so likely more accruate
     muK1 <- meanKappaAll
     sigmaK1 <- sqrt(varKappaAll)
     kurtK1 <- kurtKappaAll
