@@ -7,6 +7,8 @@
 #' @param nullBeta Vector of coefficients under the null model.
 #' @param p Number of covariates in the null model.
 #' @param nKnots Number of knots in the spline.
+#' @param infVal The numeric value representing time 0 (left-censored observation).
+#' @param zeroVal The numeric value representing time infinity (right-censored observation).
 #' 
 #' @return n*(s+1) matrix where element (i,j) holds the probability that subject i will fail in interval j.
 #'
@@ -26,12 +28,10 @@
 #' dmats <- make_IC_dmat(xMat, lt, rt)
 #' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
-#' ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
-#' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
 #' intervalProbOutput <- construct_interval_probs(allTimes = outcomeDat$allVisits, dmats = dmats,
 #' nullBeta = nullFit$beta_fit, p = ncol(xMat), nKnots=1)
 #' 
-construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
+construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots, infVal=999, zeroVal=0) {
 
   # number of subjects
   n <- nrow(allTimes)
@@ -59,16 +59,18 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots) {
   for (time_it in 1:ncol(fittedSurv)) {
 
     # make design matrix
-    tempDmat <- make_IC_dmat(xMat=NULL, lt=allTimes[, time_it],
-                               rt=allTimes[, time_it], quant_r=quant_r)
+    temp_obs_ind <- as.numeric(allTimes[, time_it] != infVal)
+    temp_tpos_ind <- as.numeric(allTimes[, time_it] != zeroVal)
+    tempDmat <- make_IC_dmat(xMat=NULL, lt=allTimes[, time_it], rt=allTimes[, time_it], 
+                             quant_r=quant_r, obs_ind = temp_obs_ind, tpos_ind = temp_tpos_ind)
 
     # total baseline hazard
     tempH <- exp(tempDmat$left_dmat %*% as.numeric(nullBeta[(p+1):(p+nKnots+2)])) * covariateH
 
     # there can be time 0, in that case manually fix to survival = 1
-    fittedSurv[, time_it] <- ifelse(allTimes[, time_it] == 0, 1, exp(-tempH))
+    fittedSurv[, time_it] <- ifelse(temp_tpos_ind == 0, 1, exp(-tempH))
     # if there is time 999, then that survival is 0
-    fittedSurv[, time_it] <- ifelse(allTimes[, time_it] == 999, 0, fittedSurv[, time_it])
+    fittedSurv[, time_it] <- ifelse(temp_obs_ind == 0, 0, fittedSurv[, time_it])
 
     # prob of falling in interval
     if (time_it == 1) {
