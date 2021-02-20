@@ -10,6 +10,7 @@
 #' @param seed Seed to start the bootstrapping.
 #' @param null_fit The null fit output from ICSKAT_fit_null.
 #' @param gMat Genotype matrix used in original test.
+#' @param xMat n*p matrix of non-genetic covariates.
 #' @param fitAgain Boolean, whether to fit the null model again in each bootstrap.
 #' @param checkpoint Boolean, whether to print every time 100 bootstraps finish.
 #' @param downsample A number in (0, 1], will use this fraction of the bootstrap iterations to try running the test with fewer bootstraps.
@@ -52,7 +53,7 @@
 #' allVisits = intervalProbOutput$allTimesFilled, quant_r = dmats$quant_r, seed = 0, 
 #' null_fit = nullFit, gMat = gMat, fitAgain = TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1))
 ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, seed = NULL,
-                              null_fit, gMat, fitAgain, checkpoint=FALSE, downsample=1, rhoVec) {
+                              null_fit, gMat, xMat, fitAgain, checkpoint=FALSE, downsample=1, rhoVec) {
 
   # set seed
   if (!is.null(seed)) { set.seed(seed) }
@@ -68,14 +69,15 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
     modelTimes <- t(mapply(matchVisit, data.frame(t(draws)), data.frame(t(allVisits))))
     newLT <- modelTimes[, 1]
     newRT <- modelTimes[, 2]
+    obs_ind <- as.numeric(newRT != Inf)
+    tpos_ind <- as.numeric(newLT > 0)
 
     # new design matrix - feed it the old quant_r
-    newDmat <- make_IC_dmat(xMat=xMat, lt=newLT, rt=newRT, quant_r = quant_r)
+    newDmat <- make_IC_dmat(xMat=xMat, lt=newLT, rt=newRT, quant_r = quant_r,
+                            obs_ind = obs_ind, tpos_ind = tpos_ind)
     newLeft <- newDmat$left_dmat
     newRight <- newDmat$right_dmat
-    obs_ind <- as.numeric(newRT < 999)
-    tpos_ind <- as.numeric(newLT> 0)
-
+    
     # fit the null to get the new Itt
     # give it the old beta
     # or should I do the entire null fit again?
