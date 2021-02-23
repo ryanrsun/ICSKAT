@@ -85,7 +85,11 @@ ICSKAT_fit_null_PO <- function(init_beta, left_dmat, right_dmat, obs_ind, tpos_i
     # sometimes fullImat is singular
     solvedImat <- tryCatch(solve(iMat), error=function(e) e)
     if (class(solvedImat)[1] %in% c("simpleError")) {
-      return(list(beta_fit=NA, iter=iter, Itt=NA, err=1, errMsg = "iMat singular, try different initial values"))
+      return(list(beta_fit=NA, iter=iter, diff_beta=diff_beta, Itt=NA, err=1, errMsg = "iMat singular, try different initial values"))
+    }
+    if (length(which(is.na(solvedImat))) > 0)
+    {
+      return(list(beta_fit=NA, iter=iter, diff_beta=diff_beta, Itt=NA, err=1, errMsg="iMat inverse has NaN, try different initial values"))
     }
 
     # update
