@@ -31,7 +31,7 @@
 #' tpos_ind <- as.numeric(lt > 0)
 #' obs_ind <- as.numeric(rt != Inf)
 #' dmats <- make_IC_dmat(xMat, lt, rt)
-#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 #' solveItt  <- solve(nullFit$Itt)
 #' ICsingleSNP(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
@@ -47,40 +47,40 @@ ICsingleSNP <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, 
   infHR <- which(H_R == Inf)
   if (length(infHR) > 0) {H_R[infHR] <- max( max(H_R[which(H_R < Inf)]), 10 )}
   # Survival term
-  SL <- ifelse(lt == 0, 1, exp(-H_L))
-  SR <- ifelse(rt == 999, 0, exp(-H_R))
+  SL <- ifelse(tpos_ind == 0, 1, exp(-H_L))
+  SR <- ifelse(obs_ind == 0, 0, exp(-H_R))
   SR[!is.finite(SR)] <- 0
   A <- SL - SR
   # sometimes A is 0
   A[which(A == 0)] <- min(A[which(A > 0)])
 
   # multiply each SNP vector by this term
-  Ug_term1 <- tpos_ind * exp(-H_L) * -H_L 
+  Ug_term1 <- tpos_ind * exp(-H_L) * -H_L
   Ug_term2 <- obs_ind * exp(-H_R) * -H_R
   Ug_term2[which(is.na(Ug_term2))] <- 0
   UgTerm <- (Ug_term1 - Ug_term2) / A
-		
+
   # The Igg term
   ggTerm1 <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A)
   ggTerm2 <- obs_ind * as.numeric(H_R * exp(-H_R) - H_R^2 * exp(-H_R)) / A
   ggTerm2[which(is.nan(ggTerm2))] <- 0
   ggTerm3 <- ( (tpos_ind * as.numeric((H_L * exp(-H_L))) - obs_ind * as.numeric((H_R * exp(-H_R)))) / A )^2
   ggTerm <- ggTerm1 + ggTerm2 - ggTerm3
-	
+
   # off-diagonals for Igtheta
-  gtTermL <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) + 
+  gtTermL <- tpos_ind * as.numeric((-H_L * exp(-H_L) + H_L^2 * exp(-H_L)) / A) +
     tpos_ind * as.numeric((H_L * exp(-H_L)) / A) * (tpos_ind * as.numeric((-H_L * exp(-H_L)) / A) + obs_ind * as.numeric((H_R * exp(-H_R)) / A))
-  gtTermR <- obs_ind * ggTerm2 - obs_ind * as.numeric((H_R * exp(-H_R)) / A) * 
+  gtTermR <- obs_ind * ggTerm2 - obs_ind * as.numeric((H_R * exp(-H_R)) / A) *
     (tpos_ind * as.numeric((-H_L * exp(-H_L)) / A) + obs_ind * as.numeric((H_R * exp(-H_R)) / A))
   gtTermCombined <- gtTermL + gtTermR
   nKnots <- ncol(left_dmat) - p
   gtTermCommon <- sweep(left_dmat[, 1:p], 1, gtTermCombined, FUN="*")
   gtHalfL <- sweep(left_dmat[, (p+1):(p+nKnots)], 1, gtTermL, FUN="*")
   gtHalfR <- sweep(right_dmat[, (p+1):(p+nKnots)], 1, gtTermR, FUN="*")
-	
+
   # apply across all columns of gMat
-  scoreStatsOutput <- apply(gMat, 2, calcScoreStats, UgTerm=UgTerm, ggTerm=ggTerm, 
-                            gtTermCommon=gtTermCommon, gtHalfL=gtHalfL, gtHalfR=gtHalfR, 
+  scoreStatsOutput <- apply(gMat, 2, calcScoreStats, UgTerm=UgTerm, ggTerm=ggTerm,
+                            gtTermCommon=gtTermCommon, gtHalfL=gtHalfL, gtHalfR=gtHalfR,
                             solveItt=solveItt)
 
   return(list(testStats = scoreStatsOutput[1, ], pvals = scoreStatsOutput[2, ]))
