@@ -61,10 +61,8 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
                                  obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps, runOnce=runOnce)
     }	else {
       nullFit <- ICSKAT_fit_null_PO(init_beta=init_beta,
-                                    lt=lt, rt=rt,
-                                    ZL=left_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)],
-                                    ZR=right_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)], xMat = xMat,
-                                    obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps, runOnce=runOnce)
+                                    lt=lt, rt=rt, left_dmat=left_dmat, right_dmat=right_dmat,
+                                    obs_ind=obs_ind, tpos_ind=tpos_ind, eps=eps)
     }
 
     # if null fit not good, go to next loop, unless runOnce
@@ -78,10 +76,9 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
                            right_dmat=right_dmat, gMat=gMat, lt=lt, rt=rt,
                            null_beta=as.numeric(nullFit$beta_fit), Itt=nullFit$Itt)
     } else {
-      skatOutput <- ICskatPO(ZL=left_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)],
-                             ZR=right_dmat[, (ncol(xMat) + 1):(ncol(xMat) + nKnots + 2)], xMat = xMat,
-                             lt=lt, rt=rt,
-                             obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, nullCoef=nullFit$nullCoef, Itt = nullFit$Itt)
+      skatOutput <- ICskatPO(left_dmat=left_dmat, tpos_ind=tpos_ind, obs_ind=obs_ind,
+                             right_dmat=right_dmat, gMat=gMat, lt=lt, rt=rt,
+                             null_beta=as.numeric(nullFit$beta_fit), Itt=nullFit$Itt)
     }
 
     # if worked or runOnce, break
