@@ -19,7 +19,7 @@
 #' \item{QrhoDF}{Data frame containing the distribution and p-value for each Qrho.}
 #' \item{r}{The rank of the cholesky decomposition of the sig_mat returned from ICSKAT(), i.e. V^-1/2 or Z.}
 #' \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false).}
-#' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF, 
+#' \item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF,
 #' 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0 unless burden is 1).}
 #' \item{lambdaKurtK1}{Kurtosis of kappa term minus zeta using eigenvalues, we use it to approximate the kurtosis of the entire kappa.}
 #' \item{lambdaSigmaK1}{Standard deviation of kappa term, including zeta, using eigenvalues.}
@@ -27,7 +27,7 @@
 #' \item{bootKurtKappaAll}{Kurtosis of entire kappa term, including zeta, using bootstrap data}
 #' \item{bootSigmaKappaAll}{Standard deviation of entire kappa term using bootstrap data.}
 #' \item{bootMuKappaAll}{Mean of entire kappa term using bootstrap data.}
-#' \item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it} 
+#' \item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it}
 #' @export
 #' @examples
 #' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
@@ -41,8 +41,8 @@
 #' rt <- outcomeDat$rightTimes
 #' tpos_ind <- as.numeric(lt > 0)
 #' obs_ind <- as.numeric(rt != Inf)
-#' dmats <- make_IC_dmat(xMat, lt, rt)
-#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 #' icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
@@ -110,8 +110,8 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   idx1 <- which(kappaLambda >= 0)
   idx2 <- which(kappaLambda > mean(kappaLambda[idx1])/100000)
   if (length(idx2) < 1) {
-    return(list(pval = NA, QrhoDF=NA, r=r, intDavies = FALSE, err=1))	
-  } 
+    return(list(pval = NA, QrhoDF=NA, r=r, intDavies = FALSE, err=1))
+  }
   kappaLambda <- kappaLambda[idx2]
 
   # the moments of the kappa term minus the zeta term
@@ -141,7 +141,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   }
 
   # get the Qrho, p-value of Qrho, its distribution parameters
-  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu, bootstrapOut = bootstrapOut, 
+  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu, bootstrapOut = bootstrapOut,
                    alwaysCentral=alwaysCentral)
   # sometimes numerically we just get weird things like only one eigenvalue
   if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
@@ -188,7 +188,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     } else {
       qMinVec[rho_it] <- (tempQ - muX) * (QrhoDF$sigmaQrhoBoot[rho_it] / sigmaX) + QrhoDF$muQrhoBoot[rho_it]
     }
-    # the reason we are using so many different moments: we are approximating a centered and scaled Qrho 
+    # the reason we are using so many different moments: we are approximating a centered and scaled Qrho
     # (where the Qrho moments come in) by another centered and scaled chi-square variable (call it X_df),
     # where X_df has a degree of freedom matched to the kurtosis of Qrho (and thus the mean of X_df is different
     # from the mean of Qrho, because the mean of Qrho is calculated from bootstrapping Qrho, and the mean of X_df
@@ -218,14 +218,14 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   }
 
   # A check in case some of the pRhoVec values are 0 or close to zero, in which case
-  # the qMinVec values can be Inf and cause errors in the integration.	
+  # the qMinVec values can be Inf and cause errors in the integration.
   # SKATO package performs this check as well.
   # According to their logic, since SKAT-O is between burden and SKAT,
   # SKAT-O p-value should be <= min(p-values) * 2.
   # See SKAT_Optimal_Get_Pvalue_VarMatching() in SKAT_Optimal_VarMatching.R.
   multi <- ifelse(length(rhoVec) < 3, 2, 3)
   posPval <- which(pRhoVec > 0)
-					
+
   # if there is a zero or negative p-value in pRhoVec, corrected should be minimum positive p-value
   if (length(posPval) < length(rhoVec) & length(posPval) > 0) {
     correctedP <- min(pRhoVec[posPval])[1]
@@ -241,7 +241,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   # sometimes the liu integration doesn't work
   if (class(intOut)[1] == "simpleError") {
     # if the reason it didn't work is because some of the pRhoVec values are too small, give it a corrected p-value
-    # error 2 means corrected p-value	
+    # error 2 means corrected p-value
     if (length(which(qMinVec == Inf)) > 0) {
       return(list(pval = correctedP, QrhoDF=QrhoDF, r=r, intDavies = intDavies, err=2))
     } else {

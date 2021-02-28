@@ -27,7 +27,7 @@
 #' \item{errMsg}{Explains error code, blank string if no error}
 #' @export
 #' @examples
-#' 
+#'
 #' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
 #' xMat <- matrix(data=rnorm(200), nrow=100)
 #' bhFunInv <- function(x) {x}
@@ -39,8 +39,8 @@
 #' rt <- outcomeDat$rightTimes
 #' tpos_ind <- as.numeric(lt > 0)
 #' obs_ind <- as.numeric(rt != Inf)
-#' dmats <- make_IC_dmat(xMat, lt, rt)
-#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 #' ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
@@ -101,12 +101,12 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
   if (length(which(is.na(Igg))) > 0 | length(which(is.na(Igt))) > 0 | length(which(is.na(Itt))) > 0) {
   	return(list(lambdaQ=NA, p_SKAT=NA, p_burden=NA, skatQ=NA, Ugamma=Ugamma, null_beta = null_beta,
   	            burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
-  } 
+  }
   sig_mat <- (-Igg) - (-Igt) %*% solve(-Itt) %*% t(-Igt)
   if (length(which(is.na(sig_mat))) > 0) {
     return(list(lambdaQ=NA, p_SKAT=NA, p_burden=NA, skatQ=NA, Ugamma=Ugamma, null_beta = null_beta,
                 burdenQ=NA, sig_mat = NA, complex=NA, err=99, errMsg="NA in variance matrix"))
-  } 
+  }
   skatQ <- t(Ugamma) %*% Ugamma
   burdenQ <- (sum(Ugamma))^2
 
@@ -132,9 +132,9 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
         errCode <- 22
         errMsg <- "Had to adjust parameters on CompQuadForm"
       }
-    } 
+    }
     B_burden= burdenQ / sum(sig_mat);
-    p_burden=1 - pchisq(B_burden,df=1) 
+    p_burden=1 - pchisq(B_burden,df=1)
   } else {
     pSKAT <- NA
     lambdaQ <- 1

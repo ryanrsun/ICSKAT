@@ -38,7 +38,7 @@ A list with the elements:
 \item{pvalSurv}{q*1 vector of marginal SNP p-values with survreg Weibull model}
 }
 \description{
-Take a matrix of SNPs and get the interval-censored regression p-value for each one separately using either 
+Take a matrix of SNPs and get the interval-censored regression p-value for each one separately using either
 survreg() or coxph() with midpoint approximation.
 }
 \examples{
@@ -53,8 +53,8 @@ lt <- outcomeDat$leftTimes
 rt <- outcomeDat$rightTimes
 tpos_ind <- as.numeric(lt > 0)
 obs_ind <- as.numeric(rt != Inf)
-dmats <- make_IC_dmat(xMat, lt, rt)
-nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
+nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
 obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 singleSNPalt(lt = lt, rt = rt,tpos_ind = tpos_ind, obs_ind = obs_ind, xMat = xMat, gMat = gMat
 

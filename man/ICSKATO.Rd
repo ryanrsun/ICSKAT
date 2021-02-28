@@ -39,7 +39,7 @@ a p-value between 0 and 1 (e.g. sometimes it will be 0). Correction is same as S
 \item{QrhoDF}{Data frame containing the distribution and p-value for each Qrho.}
 \item{r}{The rank of the cholesky decomposition of the sig_mat returned from ICSKAT(), i.e. V^-1/2 or Z.}
 \item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false).}
-\item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF, 
+\item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF,
 2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0 unless burden is 1).}
 \item{lambdaKurtK1}{Kurtosis of kappa term minus zeta using eigenvalues, we use it to approximate the kurtosis of the entire kappa.}
 \item{lambdaSigmaK1}{Standard deviation of kappa term, including zeta, using eigenvalues.}
@@ -64,8 +64,8 @@ lt <- outcomeDat$leftTimes
 rt <- outcomeDat$rightTimes
 tpos_ind <- as.numeric(lt > 0)
 obs_ind <- as.numeric(rt != Inf)
-dmats <- make_IC_dmat(xMat, lt, rt)
-nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
+nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
 obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
 obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
