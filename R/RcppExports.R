@@ -2,14 +2,14 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 eigenMapMatMultC <- function(A, B) {
-  .Call('_ICSKAT_eigenMapMatMultC', PACKAGE = 'ICSKAT', A, B)
+    .Call('_ICSKAT_eigenMapMatMultC', PACKAGE = 'ICSKAT', A, B)
 }
 
 eigenMapMatMultCrossprod <- function(A) {
-  .Call('_ICSKAT_eigenMapMatMultCrossprod', PACKAGE = 'ICSKAT', A)
+    .Call('_ICSKAT_eigenMapMatMultCrossprod', PACKAGE = 'ICSKAT', A)
 }
 
 eigenMapMatMultCrossTwo <- function(A, B) {
-  .Call('_ICSKAT_eigenMapMatMultCrossTwo', PACKAGE = 'ICSKAT', A, B)
+    .Call('_ICSKAT_eigenMapMatMultCrossTwo', PACKAGE = 'ICSKAT', A, B)
 }
 

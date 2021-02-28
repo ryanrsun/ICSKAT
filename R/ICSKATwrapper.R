@@ -15,13 +15,12 @@
 #' @param nKnots Number of knots in the spline.
 #' @param maxIter Number of times to try the fit if initial values do not lead to convergence.
 #' @param eps Difference in L2 norm of fitted null coefficients that stops the Newton Raphson.
-#' @param runOnce Boolean, if true then just go through the algorithm once with the initial 
+#' @param runOnce Boolean, if true then just go through the algorithm once with the initial
 #' values for coefficients, updating the variance matrix, useful for bootstrapping.
 #' @param returnNull Return a list with the skat output and null model, or just return the skat output (FALSE).
-#'
 #' @return Either a list with skatOutput and nullFit (two lists), or just skatOutput.
-#'
 #' @export
+#' @examples
 #' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
 #' xMat <- matrix(data=rnorm(200), nrow=100)
 #' bhFunInv <- function(x) {x}
@@ -37,17 +36,17 @@
 #' ICSKATwrapper(left_dmat = dmats$left_dmat, right_dmat = dmats$right_dmat, initValues = rep(0, ncol(xMat) + 3),
 #' lt = lt, rt = rt, obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, returnNull = TRUE)
 #'
-ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat, 
+ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tpos_ind, gMat,
                           PH=TRUE, nKnots=1, maxIter=3, eps=10^(-6), runOnce = FALSE, returnNull = FALSE) {
 
-  xMat <- left_dmat[, 1:(ncol(left_dmat) - nKnots - 2)]	
+  xMat <- left_dmat[, 1:(ncol(left_dmat) - nKnots - 2)]
   counter <- 0
   pass <- FALSE
   while (counter < maxIter) {
 
     counter <- counter + 1
-	
-    # initial values 
+
+    # initial values
     if (counter == 1) {
       init_beta <- initValues
     } else {
@@ -69,7 +68,7 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
     if ( (nullFit$err == 1 | nullFit$diff_beta > eps) & runOnce == FALSE) {
       next
     }
-	
+
     # test
     if (PH) {
       skatOutput <- ICskat(left_dmat=left_dmat, tpos_ind=tpos_ind, obs_ind=obs_ind,
@@ -84,7 +83,7 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
     # if worked or runOnce, break
     # if asking for runOnce, may return with unexpected errors
     if ( skatOutput$err == 0 | skatOutput$err == 22 | runOnce == TRUE ) {
-      pass <- TRUE	
+      pass <- TRUE
       break
     }
   } # end while loop
@@ -97,7 +96,7 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
       # if it failed at testing, then just let it return the testing error
       a <- 1
       #skatOutput <- list(p_SKAT=NA, p_burden=NA, complex=NA, err=1, errMsg="Failed testing")
-    }	
+    }
   }
 
   # return

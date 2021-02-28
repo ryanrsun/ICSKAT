@@ -23,7 +23,7 @@
 #' \item{kurtKappa}{Bootstrapped kurtosis of kappa term without zeta.}
 #' \item{kurtKappaAll}{Bootstrapped kurtosis of full kappa term with zeta.}
 #' \item{varKappaAll}{Bootstrapped variance of full kappa term with zeta.}
-#' \item{meanKappaAll}Bootstrapped mean of full kappa term with zeta.}
+#' \item{meanKappaAll}{Bootstrapped mean of full kappa term with zeta.}
 #' \item{bootDF}{Matrix with B rows containing all the bootstrapped quantities over all iterations.}
 #' \item{QrhoBoot}{Matrix with B rows containing all the bootstrapped Qrho values, one column for each rho.}
 #' \item{listDS}{A list containing all of the other elements in this return list, except using the downsampled iterations.}
@@ -43,14 +43,14 @@
 #' tpos_ind <- as.numeric(lt > 0)
 #' obs_ind <- as.numeric(rt != Inf)
 #' dmats <- make_IC_dmat(xMat, lt, rt)
-#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 #' icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
 #' intervalProbOutput <- construct_interval_probs(allTimes = outcomeDat$allVisits, dmats = dmats,
 #' nullBeta = nullFit$beta_fit, p = ncol(xMat), nKnots=1)
 #' ICSKATO_bootstrap(icskatOut = icSkatOut, B = 100, intervalProbs = intervalProbOutput$probMat,
-#' allVisits = intervalProbOutput$allTimesFilled, quant_r = dmats$quant_r, seed = 0, 
+#' allVisits = intervalProbOutput$allTimesFilled, quant_r = dmats$quant_r, seed = 0,
 #' null_fit = nullFit, gMat = gMat, fitAgain = TRUE, rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1))
 ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, seed = NULL,
                               null_fit, gMat, xMat, fitAgain, checkpoint=FALSE, downsample=1, rhoVec) {
@@ -77,17 +77,17 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
                             obs_ind = obs_ind, tpos_ind = tpos_ind)
     newLeft <- newDmat$left_dmat
     newRight <- newDmat$right_dmat
-    
+
     # fit the null to get the new Itt
     # give it the old beta
     # or should I do the entire null fit again?
     if (fitAgain) {
-      PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit), 
+      PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit),
         lt=newLT, rt=newRT, runOnce = FALSE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 5, returnNull=TRUE)
       newNull <- PHres$nullFit
-      bootSKAT <- PHres$skatOutput 
+      bootSKAT <- PHres$skatOutput
     } else {
-      PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit), 
+      PHres <- ICSKATwrapper(left_dmat = newLeft, right_dmat = newRight, initValues = as.numeric(null_fit$beta_fit),
         lt=newLT, rt=newRT, runOnce = TRUE, obs_ind=obs_ind, tpos_ind=tpos_ind, gMat=gMat, PH = TRUE, nKnots=1, maxIter = 1, returnNull=TRUE)
       newNull <- PHres$nullFit
       bootSKAT <- PHres$skatOutput
