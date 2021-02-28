@@ -4,8 +4,18 @@
 \alias{ICsingleSNP}
 \title{ICsingleSNP.R}
 \usage{
-ICsingleSNP(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat,
-  null_beta, solveItt, p)
+ICsingleSNP(
+  left_dmat,
+  right_dmat,
+  lt,
+  rt,
+  obs_ind,
+  tpos_ind,
+  gMat,
+  null_beta,
+  solveItt,
+  p
+)
 }
 \arguments{
 \item{left_dmat}{n*(p+nknots+2) design matrix for left end of interval.}
@@ -20,11 +30,13 @@ ICsingleSNP(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat,
 
 \item{tpos_ind}{n*1 vector of whether the event was observed after follow-up started (t>0).}
 
-\item{gMat}{n*p genotype matrix.}
+\item{gMat}{n*q genotype matrix.}
 
 \item{null_beta}{(p+nknots+2)*1 vector of coefficients for null model.}
 
-\item{Itt}{(p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.}
+\item{solveItt}{Inverse of (p+nknots+2)*(p+nknots+2) Fisher information matrix for null model coefficients.}
+
+\item{p}{number of non-SNP covariates.}
 }
 \value{
 A list with the elements:
@@ -32,17 +44,25 @@ A list with the elements:
 \item{pVec}{p*1 vector of score test p-values}
 }
 \description{
-Same as ICSKAT() except do a separate score test for each SNP in gMat, one at a time.
+Burden test from ICSKAT() except do a separate burden test for each SNP in gMat, one at a time.
 }
 \examples{
-X <- matrix(data=rnorm(200), nrow=100)
-lt <- runif(n=100, min=0, max=5)
-rt <- lt + runif(n=100, min=0, max=5)
-dmats <- make_IC_dmat(X=X, lt=lt, rt=rt)
-null_fit <- skat_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat,
-right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
-ICsingleSNP(left_dmat=dmats$left_dmat, right_dmat=dmats$right_dmat, obs_ind=rep(1, n),
-tpos_ind = as.numeric(lt > 0), null_beta=null_fit$beta_fit, Itt=null_fit$Itt, 
-gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
+gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+xMat <- matrix(data=rnorm(200), nrow=100)
+bhFunInv <- function(x) {x}
+obsTimes <- 1:5
+etaVec <- rep(0, 100)
+outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+probMiss = 0.1, etaVec = etaVec)
+lt <- outcomeDat$leftTimes
+rt <- outcomeDat$rightTimes
+tpos_ind <- as.numeric(lt > 0)
+obs_ind <- as.numeric(rt != Inf)
+dmats <- make_IC_dmat(xMat, lt, rt)
+nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
+obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+solveItt  <- solve(nullFit$Itt)
+ICsingleSNP(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
+obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, solveItt = solveItt, p=2)
 
 }

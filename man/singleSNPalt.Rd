@@ -4,43 +4,58 @@
 \alias{singleSNPalt}
 \title{singleSNPalt.R}
 \usage{
-singleSNPalt(lt, rt, tpos_ind, obs_ind, xMat, gMat, coxph = TRUE,
-  survreg = TRUE)
+singleSNPalt(
+  lt,
+  rt,
+  tpos_ind,
+  obs_ind,
+  xMat,
+  gMat,
+  coxph = TRUE,
+  survreg = TRUE
+)
 }
 \arguments{
 \item{lt}{n*1 vector of left side of time interval.}
 
 \item{rt}{n*1 vector of right side of time interval.}
 
-\item{tpos_ind}{n*1 vector of whether the event was observed after follow-up started (t>0).}
+\item{tpos_ind}{n*1 binary vector of whether the event was observed after follow-up started (takes value 1 if t>0, 0 otherwise).}
 
 \item{xMat}{non-SNP covariates matrix.}
 
-\item{gMat}{n*p genotype matrix.}
+\item{gMat}{n*q genotype matrix.}
 
 \item{coxph}{Boolean, whether to fit Cox PH model.}
 
-\item{survreg}{Boolean, whether to fit survreg() weibull model.}
+\item{survreg}{Boolean, whether to fit survreg() Wiibull model.}
 
-\item{obsInd}{n*1 vector of whether the event was observed or right-censored (0).}
+\item{obsInd}{n*1 vector of whether the event was observed or right-censored (takes value 1 if observed or 0 if right-censored).}
 }
 \value{
 A list with the elements:
-\item{pVec}{p*1 vector of marginal SNP p-values}
+\item{pvalCox}{q*1 vector of marginal SNP p-values with Cox model}
+\item{pvalSurv}{q*1 vector of marginal SNP p-values with survreg Weibull model}
 }
 \description{
 Take a matrix of SNPs and get the interval-censored regression p-value for each one separately using either 
 survreg() or coxph() with midpoint approximation.
 }
 \examples{
-X <- matrix(data=rnorm(200), nrow=100)
-lt <- runif(n=100, min=0, max=5)
-rt <- lt + runif(n=100, min=0, max=5)
-dmats <- make_IC_dmat(X=X, lt=lt, rt=rt)
-null_fit <- skat_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat,
-right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
-ICsingleSNP(left_dmat=dmats$left_dmat, right_dmat=dmats$right_dmat, obs_ind=rep(1, n),
-tpos_ind = as.numeric(lt > 0), null_beta=null_fit$beta_fit, Itt=null_fit$Itt, 
-gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
+gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+xMat <- matrix(data=rnorm(200), nrow=100)
+bhFunInv <- function(x) {x}
+obsTimes <- 1:5
+etaVec <- rep(0, 100)
+outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+probMiss = 0.1, etaVec = etaVec)
+lt <- outcomeDat$leftTimes
+rt <- outcomeDat$rightTimes
+tpos_ind <- as.numeric(lt > 0)
+obs_ind <- as.numeric(rt != Inf)
+dmats <- make_IC_dmat(xMat, lt, rt)
+nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+singleSNPalt(lt = lt, rt = rt,tpos_ind = tpos_ind, obs_ind = obs_ind, xMat = xMat, gMat = gMat
 
 }

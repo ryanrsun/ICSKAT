@@ -2,7 +2,7 @@
 % Please edit documentation in R/acat.R
 \name{ACAT}
 \alias{ACAT}
-\title{Aggregated Cauchy Assocaition Test}
+\title{Aggregated Cauchy Association Test}
 \usage{
 ACAT(Pvals, Weights = NULL)
 }
@@ -15,7 +15,8 @@ ACAT(Pvals, Weights = NULL)
 p-value of ACAT.
 }
 \description{
-A p-value combination method using the Cauchy distribution.
+A p-value combination method using the Cauchy distribution - copied line for line from 
+code provided by Yaowu Liu (yaowuliu615 AT gmail.com).
 }
 \examples{
 p.values<-c(2e-02,4e-04,0.2,0.1,0.8)

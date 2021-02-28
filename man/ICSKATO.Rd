@@ -4,24 +4,70 @@
 \alias{ICSKATO}
 \title{ICSKATO.R}
 \usage{
-ICSKATO(icskatOut, liu = TRUE, rhoVec = c(0, 0.01, 0.04, 0.09, 0.25,
-  0.5, 1))
+ICSKATO(
+  rhoVec = c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1),
+  icskatOut,
+  useMixtureKurt = FALSE,
+  liu = TRUE,
+  liuIntegrate = FALSE,
+  bootstrapOut = NULL,
+  alwaysCentral = FALSE
+)
 }
 \arguments{
+\item{rhoVec}{Vector of rhos to search over.}
+
 \item{icskatOut}{The output list from ICSKAT().}
 
-\item{liu}{Boolean for whether to use Liu moment matching approximation for p-value or Davies method.}
+\item{useMixtureKurt}{Boolean for whether to use the mixture formula to estimate the kurtosis of Qrho when we
+have bootstrap results. Default is false, instead we just use the bootstraped kurtosis of Qrho.}
 
-\item{rhoVec}{Vector of rhos to search over.}
+\item{liu}{Boolean for whether to use Liu moment matching approximation for p-value of each Qrho (as opposed to Davies).
+If Davies, cannot use bootstrapped moments of Qrho.}
+
+\item{liuIntegrate}{Boolean for whether to use Liu moment matching approximation integration in SKATO p-value (as opposed to Davies).}
+
+\item{bootstrapOut}{Output list from call to ICSKATO_bootstrap().}
+
+\item{alwaysCentral}{A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.}
 }
 \value{
 A list with the elements:
-\item{pval}{SKATO p-value}
-\item{QrhoDF}{Data frame containing the distribution and p-value for each Krho.}
-\item{r}{The rank of the cholesky decomposition of the kappa part}
-\item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false)}
-\item{err}{Boolean, did the integration run into an error}
+\item{pval}{SKATO p-value.}
+\item{correctedP}{Corrected SKATO p-value, which will be the same as pval when not all Qrho values produce
+a p-value between 0 and 1 (e.g. sometimes it will be 0). Correction is same as SKAT package correction..}
+\item{QrhoDF}{Data frame containing the distribution and p-value for each Qrho.}
+\item{r}{The rank of the cholesky decomposition of the sig_mat returned from ICSKAT(), i.e. V^-1/2 or Z.}
+\item{intDavies}{Boolean denoting whether integration was with Davies (true) or Liu method (false).}
+\item{err}{0 is no error, 1 is early error like possibly only one eigenvalue/issue with sigmat/issue with kappaMat/issue with QrhoDF, 
+2 is corrected p-value (fine), 3 is integration error, 9 is no positive p-values (so SKATOp should be 0 unless burden is 1).}
+\item{lambdaKurtK1}{Kurtosis of kappa term minus zeta using eigenvalues, we use it to approximate the kurtosis of the entire kappa.}
+\item{lambdaSigmaK1}{Standard deviation of kappa term, including zeta, using eigenvalues.}
+\item{lambdaMuK1}{Mean of kappa term using eigenvalues.}
+\item{bootKurtKappaAll}{Kurtosis of entire kappa term, including zeta, using bootstrap data}
+\item{bootSigmaKappaAll}{Standard deviation of entire kappa term using bootstrap data.}
+\item{bootMuKappaAll}{Mean of entire kappa term using bootstrap data.}
+\item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it}
 }
 \description{
 Calculate SKATO test for ICSKAT.
+}
+\examples{
+gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+xMat <- matrix(data=rnorm(200), nrow=100)
+bhFunInv <- function(x) {x}
+obsTimes <- 1:5
+etaVec <- rep(0, 100)
+outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+probMiss = 0.1, etaVec = etaVec)
+lt <- outcomeDat$leftTimes
+rt <- outcomeDat$rightTimes
+tpos_ind <- as.numeric(lt > 0)
+obs_ind <- as.numeric(rt != Inf)
+dmats <- make_IC_dmat(xMat, lt, rt)
+nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, 
+obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
+obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
+ICSKATO(icskatOut = icskatOut)
 }

@@ -4,7 +4,7 @@
 \alias{make_IC_dmat}
 \title{make_IC_dmat.R}
 \usage{
-make_IC_dmat(xMat, lt, rt, nknots = 1)
+make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind, quant_r = NULL, nKnots = 1)
 }
 \arguments{
 \item{xMat}{n*p matrix of non-genetic covariates.}
@@ -13,13 +13,19 @@ make_IC_dmat(xMat, lt, rt, nknots = 1)
 
 \item{rt}{n*1 vector with right end of intervals.}
 
-\item{nknots}{number of knots to use for cubic spline basis (default is 1).}
+\item{obs_ind}{n*1 vector of whether the event was observed before last follow-up.}
+
+\item{tpos_ind}{n*1 vector of whether the event was observed after follow-up started (t>0).}
+
+\item{quant_r}{Quantiles of time to use in constructing the spline, pass in if doing bootstrap.}
+
+\item{nKnots}{Number of knots to use for cubic spline basis (default is 1).}
 }
 \value{
 A list with the elements:
-\item{right_dmat}{n*(p+nknots+2) design matrix for right end of interval.}
-\item{left_dmat}{n*(p+nknots+2) design matrix for left end of interval.}
-#'
+\item{right_dmat}{n*(p+nKnots+2) design matrix for right end of interval.}
+\item{left_dmat}{n*(p+nKnots+2) design matrix for left end of interval.}
+\item{quant_r}{Quantiles used for constructing spline.}
 }
 \description{
 Puts together the entire design matrix for both the left and right ends of the
@@ -27,8 +33,15 @@ interval, pasting together the non-genetic covariates with the cubic spline basi
 }
 \examples{
 xMat <- matrix(data=rnorm(200), nrow=100)
-lt <- runif(n=100, min=0, max=5)
-rt <- lt + runif(n=100, min=0, max=5)
-make_IC_dmat(xMat=xMat, lt=lt, rt=rt)
+bhFunInv <- function(x) {x}
+obsTimes <- 1:5
+etaVec <- rep(0, 100)
+outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+probMiss = 0.1, etaVec = etaVec)
+lt <- outcomeDat$leftTimes
+rt <- outcomeDat$rightTimes
+tpos_ind <- as.numeric(lt > 0)
+obs_ind <- as.numeric(rt != Inf)
+make_IC_dmat(xMat = xMat, lt = lt, rt = rt, obs_ind = obs_ind, tpos_ind = tpos_ind)
 
 }

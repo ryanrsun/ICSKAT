@@ -4,32 +4,31 @@
 \alias{QrhoIC}
 \title{QrhoIC.R}
 \usage{
-QrhoIC(rhoVec, icskatOut, liu = TRUE)
+QrhoIC(
+  rhoVec,
+  icskatOut,
+  liu = TRUE,
+  bootstrapOut = NULL,
+  alwaysCentral = FALSE
+)
 }
 \arguments{
 \item{rhoVec}{Numeric vector of the rho values to use in SKATO.}
 
-\item{null_beta}{The output (a list) from a call to the ICSKAT() function.}
+\item{icskatOut}{The output list returned from  a call to ICSKAT().}
 
-\item{Itt}{Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values.}
+\item{liu}{Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values for each Qrho. 
+Default is Liu, following SKAT package. If wanting to use bootstrap moments for Qrho, need to use Liu method.}
+
+\item{bootstrapOut}{The output (a list) from a call the ICSKATO_bootstrap() function, holding moments for Qrho.}
+
+\item{alwaysCentral}{A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.}
 }
 \value{
-Data frame holding the pvalue + test statistic for each fixed rho, the matched noncentrality + degree of freedom parameters
-according to the Liu method, and the mean and variance of each Qrho.
+Data frame holding the SKAT pvalue + test statistic for each fixed rho, the matched noncentrality + degree of freedom parameters
+for each fixed rho (using both bootstrap and analytic calculation), and the mean and variance of each Qrho using both
+bootstrap and analytic calculation.
 }
 \description{
 Calculate the test statistic, distribution, and p-value for each value of Krho in SKATO.
-}
-\examples{
-X <- matrix(data=rnorm(200), nrow=100)
-lt <- runif(n=100, min=0, max=5)
-rt <- lt + runif(n=100, min=0, max=5)
-dmats <- make_IC_dmat(X=X, lt=lt, rt=rt)
-null_fit <- skat_fit_null(init_beta=rep(0, 5), left_dmat=dmats$left_dmat,
-right_dmat=dmats$right_dmat, obs_ind=rep(1, n), tpos_ind = as.numeric(lt > 0))
-myoutput <- ICskat(left_dmat=dmats$left_dmat, right_dmat=dmats$right_dmat, obs_ind=rep(1, n),
-tpos_ind = as.numeric(lt > 0), null_beta=null_fit$beta_fit, Itt=null_fit$Itt,
-gMat=matrix(data=rbinom(n=200*10, size=2, prob=0.3), nrow=200))
-QrhoIC(rhoVec = seq(from=0, to=1, by=0.1), icskatOut = myoutput)
-
 }
