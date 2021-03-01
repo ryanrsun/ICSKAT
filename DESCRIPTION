@@ -17,3 +17,6 @@ Imports:
 	magrittr,
 	survival
 LinkingTo: Rcpp, RcppEigen
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
