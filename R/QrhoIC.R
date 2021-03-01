@@ -4,13 +4,15 @@
 #'
 #' @param rhoVec Numeric vector of the rho values to use in SKATO.
 #' @param icskatOut The output list returned from  a call to ICSKAT().
-#' @param liu Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values for each Qrho. 
+#' @param liu Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values for each Qrho.
 #' Default is Liu, following SKAT package. If wanting to use bootstrap moments for Qrho, need to use Liu method.
 #' @param bootstrapOut The output (a list) from a call the ICSKATO_bootstrap() function, holding moments for Qrho.
 #' @param alwaysCentral A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.
 #' @return Data frame holding the SKAT pvalue + test statistic for each fixed rho, the matched noncentrality + degree of freedom parameters
 #' for each fixed rho (using both bootstrap and analytic calculation), and the mean and variance of each Qrho using both
 #' bootstrap and analytic calculation.
+#'
+#' @importFrom stats pchisq
 #'
 #' @export
 QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, alwaysCentral=FALSE) {
@@ -75,7 +77,7 @@ QrhoIC <- function(rhoVec, icskatOut, liu=TRUE, bootstrapOut=NULL, alwaysCentral
       # also, should I ignore the delta and set it to 0 always?
       # if so, should actually change thsi in chiSqMatchFast so that it always returns 0 for delta,
       # that will do it more cleanly.
-      liuDF$liuPval[rho_it] <- pchisq(q = (liuDF$Qrho[rho_it] - muQrho) / sigmaQrho * sqrt(2 * tempDF + 4 * tempDelta) + tempDF + tempDelta,
+      liuDF$liuPval[rho_it] <- stats::pchisq(q = (liuDF$Qrho[rho_it] - muQrho) / sigmaQrho * sqrt(2 * tempDF + 4 * tempDelta) + tempDF + tempDelta,
                                       df = tempDF, ncp=tempDelta, lower.tail=F)
     } else {
       # p-value of Qrho

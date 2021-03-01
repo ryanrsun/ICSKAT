@@ -47,7 +47,7 @@ a p-value between 0 and 1 (e.g. sometimes it will be 0). Correction is same as S
 \item{bootKurtKappaAll}{Kurtosis of entire kappa term, including zeta, using bootstrap data}
 \item{bootSigmaKappaAll}{Standard deviation of entire kappa term using bootstrap data.}
 \item{bootMuKappaAll}{Mean of entire kappa term using bootstrap data.}
-\item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it}
+\item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, only here to match SKAT package, not really used.}
 }
 \description{
 Calculate SKATO test for ICSKAT.
@@ -66,8 +66,8 @@ rt <- outcomeDat$rightTimes
 tpos_ind <- as.numeric(lt > 0)
 obs_ind <- as.numeric(rt != Inf)
 dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
-nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
-obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+# nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat,
+# right_dmat=dmats$right_dmat, obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
 obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
 ICSKATO(icskatOut = icskatOut)

@@ -19,6 +19,9 @@
 #' values for coefficients, updating the variance matrix, useful for bootstrapping.
 #' @param returnNull Return a list with the skat output and null model, or just return the skat output (FALSE).
 #' @return Either a list with skatOutput and nullFit (two lists), or just skatOutput.
+#'
+#' @importFrom stats runif
+#'
 #' @export
 #' @examples
 #' set.seed(0)
@@ -51,7 +54,7 @@ ICSKATwrapper <- function(left_dmat, right_dmat, initValues, lt, rt, obs_ind, tp
     if (counter == 1) {
       init_beta <- initValues
     } else {
-      init_beta <- runif(n=ncol(left_dmat), min = -1, max = 1)
+      init_beta <- stats::runif(n=ncol(left_dmat), min = -1, max = 1)
     }
 
     # null fit

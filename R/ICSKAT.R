@@ -25,6 +25,12 @@
 #' \item{null_beta}{The fitted null parameters}
 #' \item{err}{Will be 0 for no error, 22 if had to adjust parameters on CompQuadForm (totally normal), or 99 if NA in variance matrix. ICSKATwrapper will return 1 here if the null fit has an error}
 #' \item{errMsg}{Explains error code, blank string if no error}
+#'
+#' @importFrom stats pchisq
+#' @importFrom Rcpp evalCpp
+#'@importFrom Rcpp sourceCpp
+#' @useDynLib ICSKAT
+#'
 #' @export
 #' @examples
 #' set.seed(0)
@@ -134,7 +140,7 @@ ICskat <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, null_
       }
     }
     B_burden= burdenQ / sum(sig_mat);
-    p_burden=1 - pchisq(B_burden,df=1)
+    p_burden= 1 - stats::pchisq(B_burden, df = 1)
   } else {
     pSKAT <- NA
     lambdaQ <- 1

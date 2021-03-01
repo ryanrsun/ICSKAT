@@ -6,7 +6,7 @@
 #' @param lt n*1 vector of left side of time interval.
 #' @param rt n*1 vector of right side of time interval.
 #' @param tpos_ind n*1 binary vector of whether the event was observed after follow-up started (takes value 1 if t>0, 0 otherwise).
-#' @param obsInd n*1 vector of whether the event was observed or right-censored (takes value 1 if observed or 0 if right-censored).
+#' @param obs_ind n*1 vector of whether the event was observed or right-censored (takes value 1 if observed or 0 if right-censored).
 #' @param xMat non-SNP covariates matrix.
 #' @param gMat n*q genotype matrix.
 #' @param coxph Boolean, whether to fit Cox PH model.
@@ -61,7 +61,21 @@ singleSNPalt <- function(lt, rt, tpos_ind, obs_ind, xMat, gMat, coxph=TRUE, surv
 }
 
 
-# function to be applied over gMat to get p-values from survreg()
+
+#' survregFn
+#'
+#' Function to be applied over gMat to get p-values from survreg().
+#'
+#' @param x n*1 genotype vector.
+#' @param xMat n*p matrix of non-genotype covariates.
+#' @param leftTime2 n*1 vector of left interval times in the format of Surv() interval2 type, i.e NA for left or right censored observations.
+#' @param rightTime2 n*1 vector of right interval times in the format of Surv() interval2 type, i.e NA for left or right censored observations.
+#' @param p scalar, number of columns in xMat.
+#'
+#' @return A scalar p-value for testing the effect of the genotype in survreg() Weibull model.
+#'
+#' @export
+#'
 survregFn <- function(x, xMat, leftTime2, rightTime2, p) {
   tempMod <- survival::survreg(Surv(time = leftTime2, time2 = rightTime2, type="interval2") ~
                                 xMat + x, dist="weibull")
@@ -69,7 +83,20 @@ survregFn <- function(x, xMat, leftTime2, rightTime2, p) {
   return(pval)
 }
 
-# function to be applied over gMat to get p-values from coxPH
+#' coxphFn
+#'
+#' Function to be applied over gMat to get p-values from coxPH().
+#'
+#' @param x n*1 genotype vector.
+#' @param xMat n*p matrix of non-genotype covariates.
+#' @param midTime n*1 vector of event times imputed to be right-censored times using the midpoint imputation method.
+#' @param midEvent n*1 vector event indicators (0 for censoring, 1 for event) after times have been transformed to right-censored observations.
+#' @param p scalar, number of columns in xMat.
+#'
+#' @return A scalar p-value for testing the effect of the genotype in survreg() Weibull model.
+#'
+#' @export
+#'
 coxphFn <- function(x, xMat, midTime, midEvent, p) {
   tempMod <- survival::coxph(Surv(time = midTime,  event=midEvent) ~ xMat + x)
   pval <- summary(tempMod)$coefficients[p+1, 5]

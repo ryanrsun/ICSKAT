@@ -21,6 +21,10 @@
 #' \item{burdenQ}{Burden test statistic.}
 #' \item{err}{err=1 for a bad null fit.}
 #' \item{errMsg}{Describes the error.}
+#'
+#' @importFrom rje expit
+#' @importFrom stats pchisq
+#'
 #' @export
 #' @examples
 #' set.seed(0)
@@ -48,8 +52,8 @@ ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, nul
   etaR <- right_dmat %*% null_beta
 
   # survival term
-  SL <- ifelse(tpos_ind == 0, 1, expit(-etaL))
-  SR <- ifelse(obs_ind == 0, 0, expit(-etaR))
+  SL <- ifelse(tpos_ind == 0, 1, rje::expit(-etaL))
+  SR <- ifelse(obs_ind == 0, 0, rje::expit(-etaR))
   SR[!is.finite(SR)] <- 0
   A <- SL - SR
   # sometimes A is 0
@@ -125,7 +129,7 @@ ICskatPO <- function(left_dmat, right_dmat, lt, rt, obs_ind, tpos_ind, gMat, nul
   # burden
   burdenQ <- (sum(Ugamma))^2
   B_burden = burdenQ / sum(sig_mat);
-  p_burden = 1- pchisq(B_burden,df=1)
+  p_burden = 1 - stats::pchisq(B_burden, df = 1)
 
   return(list(p_SKAT=p_SKAT, p_burden=p_burden, skatQ=skatQ, burdenQ=burdenQ, sig_mat = sig_mat, complex=is.complex(lambdaQ), err=errCode, errMsg=errMsg))
 }

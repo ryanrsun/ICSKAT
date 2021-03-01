@@ -29,6 +29,8 @@
 #' \item{listDS}{A list containing all of the other elements in this return list, except using the downsampled iterations.}
 #' \item{nonNA}{Number of bootstraps that did not result in NA (and thus were not removed).}
 #'
+#' @importFrom stats rmultinom
+#'
 #' @export
 #' @examples
 #' set.seed(0)
@@ -66,7 +68,7 @@ ICSKATO_bootstrap <- function(icskatOut, B, intervalProbs, allVisits, quant_r, s
   for (boot_it in 1:B) {
 
     # draw from model
-    draws <- t(sapply(data.frame(t(intervalProbs)), FUN = rmultinom, n=1, size=1))
+    draws <- t(sapply(data.frame(t(intervalProbs)), FUN = stats::rmultinom, n=1, size=1))
     modelTimes <- t(mapply(matchVisit, data.frame(t(draws)), data.frame(t(allVisits))))
     newLT <- modelTimes[, 1]
     newRT <- modelTimes[, 2]

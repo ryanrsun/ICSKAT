@@ -4,16 +4,7 @@
 \alias{fIntegrate}
 \title{fIntegrate.R}
 \usage{
-fIntegrate(
-  x,
-  muK1,
-  sigmaK1,
-  sigmaZeta,
-  kappaLambda,
-  QrhoDF,
-  kurtK1 = NULL,
-  matchKurt = FALSE
-)
+fIntegrate(x, muK1, sigmaK1, sigmaZeta, kappaLambda, QrhoDF)
 }
 \arguments{
 \item{x}{Variable to be integrated over, can be a vector or scalar.}

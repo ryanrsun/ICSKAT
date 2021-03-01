@@ -18,6 +18,9 @@
 #' \item{rightTimes}{n*1 vector of right side of interval times.}
 #' \item{tVec}{n*1 vector of exact event times.}
 #'
+#' @importFrom stats runif
+#' @importFrom stats rbinom
+#'
 #' @export
 #' @examples
 #' set.seed(0)
@@ -34,7 +37,7 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
   n <- length(etaVec)
 
   # generate the exact times
-  uVec <- runif(n=n, min=0, max=1)
+  uVec <- stats::runif(n=n, min=0, max=1)
   if (mod == "PH") {
       tVec <- bhFunInv( -log(1 - uVec) / exp(etaVec) )
   } else if (mod == "PO") {
@@ -46,20 +49,20 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
 
   # 1 - probMiss is the chance of making it to the visit
   nVisits <- length(obsTimes)
-  madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=(1 - probMiss)), nrow=n, ncol=nVisits)
+  madeVisit <- matrix(data = stats::rbinom(n=n*nVisits, size=1, prob=(1 - probMiss)), nrow=n, ncol=nVisits)
 
   # make sure there is at least one visit for each subject
   nMadeVisits <- apply(madeVisit, 1, sum)
   zeroVisits <- which(nMadeVisits == 0)
   while (length(zeroVisits) > 0) {
-    madeVisit[zeroVisits, ] <- matrix(data=rbinom(n=length(zeroVisits) * nVisits, size=1,
+    madeVisit[zeroVisits, ] <- matrix(data = stats::rbinom(n=length(zeroVisits) * nVisits, size=1,
                                                   prob=(1 - probMiss)), nrow=length(zeroVisits), ncol=nVisits)
     nMadeVisits <- apply(madeVisit, 1, sum)
     zeroVisits <- which(nMadeVisits == 0)
   }
 
 	# actual visit time is uniformly distributed around the intended obsTime, windowHalf on each side
-  visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
+  visitTime <- sweep(matrix(data = stats::runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
                      MARGIN=2, STATS=obsTimes, FUN="+")
 
   # get all visits for each subject

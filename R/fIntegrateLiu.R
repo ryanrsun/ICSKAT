@@ -10,6 +10,9 @@
 #'
 #' @return The value of the integrand at x.
 #'
+#' @importFrom stats dchisq
+#' @importFrom stats pchisq
+#'
 #' @export
 fIntegrateLiu <- function(x, muK1, sigmaK1, QrhoDF, dfK1) {
 
@@ -24,6 +27,6 @@ fIntegrateLiu <- function(x, muK1, sigmaK1, QrhoDF, dfK1) {
   # here the new chi-square RV that we are approximating kappa by has its moments determined
   # by its degrees of freedom, which are matched to its kurtosis.
   deltaX <- sqrt(2 * dfK1) * (minVec - muK1) / sigmaK1 + dfK1
-  retVec <- pchisq(deltaX, df = dfK1) * dchisq(x, df=1)
+  retVec <- stats::pchisq(deltaX, df = dfK1) * stats::dchisq(x, df=1)
   return(retVec)
 }

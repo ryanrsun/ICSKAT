@@ -13,8 +13,10 @@
 #'
 #' @return The value of the integrand at x.
 #'
+#' @importFrom stats dchisq
+#'
 #' @export
-fIntegrate <- function(x, muK1, sigmaK1, sigmaZeta, kappaLambda, QrhoDF, kurtK1=NULL, matchKurt=FALSE) {
+fIntegrate <- function(x, muK1, sigmaK1, sigmaZeta, kappaLambda, QrhoDF) {
 
   # needs to be able to take vectorized x
   nr <- nrow(QrhoDF)
@@ -35,24 +37,20 @@ fIntegrate <- function(x, muK1, sigmaK1, sigmaZeta, kappaLambda, QrhoDF, kurtK1=
       # the difference here is in the variance terms, we are approximating a
       # centered and scaled kappa by a centered and scaled sum of chi-square RVs that
       # are multiplied by the eigenvalues of the first part of kappa. We could arguably
-      # replace the sigmaK1^2 and + muK1 terms by their values calculated based on kappaLambda. 
+      # replace the sigmaK1^2 and + muK1 terms by their values calculated based on kappaLambda.
       deltaX <- (tempMin - muK1) * sqrt(sigmaK1^2 - sigmaZeta^2) / sigmaK1 + muK1
       daviesOutput <- CompQuadForm::davies(q=deltaX, lambda=kappaLambda, acc=10^(-6))
       Sx <- daviesOutput$Qq
       if (daviesOutput$ifault != 0) {stop("daviesOutput$ifault is not 0")}
 
       if (Sx > 1) {Sx <- 1}
-      
+
       # approximate kappa by a chi-squared RV that has the kurtosis matched to kappa
-      if (matchKurt) {
-        deltaXkurt<- (tempMin - muK1) * sqrt(2 * dfK1) / sigmaK1 + dfK1
-        daviesOutputKurt <- CompQuadForm::davies(q=deltaX, lambda=kappaLambda, acc=10^(-6))
-        Sx <- daviesOutput$Qq
-        SxKurt <- 
-        if (Sx > 1) {Sx <- 1}
-      }
+      #if (matchKurt) {
+        # no more option here
+      #}
     }
-    retVec[i]<-(1-Sx) * dchisq(x[i],df=1, ncp=0)
+    retVec[i]<-(1-Sx) * stats::dchisq(x[i],df=1, ncp=0)
   }
   return(retVec)
 }

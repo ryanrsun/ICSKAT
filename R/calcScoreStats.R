@@ -12,12 +12,14 @@
 #' @param solveItt p*p inverse of the Itt matrix from ICSKAT_fit_null().
 #' @return A 2*1 vector with the test statistic and then p-value.
 #'
+#' @importFrom stats pchisq
+#'
 #' @export
 calcScoreStats <- function(x, UgTerm, ggTerm, gtTermCommon, gtHalfL, gtHalfR, solveItt) {
-   
+
   # numerator of test statistic
   numerator <- sum(UgTerm * x)
-    
+
   # variance terms
   Igg <- sum(x^2 * ggTerm)
   IgtCommon <- t(x) %*% gtTermCommon
@@ -26,9 +28,9 @@ calcScoreStats <- function(x, UgTerm, ggTerm, gtTermCommon, gtHalfL, gtHalfR, so
   Igt <- c(IgtCommon, IgtLeft + IgtRight)
   # variance
   varTerm <- -Igg + t(Igt) %*% solveItt %*% Igt
-		
+
   # test statistic
   testStat <- numerator^2 / varTerm
-  pval <- 1 - pchisq(testStat, df=1, lower.tail = TRUE)
+  pval <- 1 - stats::pchisq(testStat, df=1, lower.tail = TRUE)
   return(c(testStat, pval))
 }

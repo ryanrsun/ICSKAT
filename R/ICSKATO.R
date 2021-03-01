@@ -27,7 +27,11 @@
 #' \item{bootKurtKappaAll}{Kurtosis of entire kappa term, including zeta, using bootstrap data}
 #' \item{bootSigmaKappaAll}{Standard deviation of entire kappa term using bootstrap data.}
 #' \item{bootMuKappaAll}{Mean of entire kappa term using bootstrap data.}
-#' \item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, we don't really use it}
+#' \item{mixDFVec}{Degrees of freedom of Qrho if useMixtureKurt is true, only here to match SKAT package, not really used.}
+#' @importFrom dplyr %>%
+#' @importFrom dplyr mutate
+#' @importFrom stats qchisq
+#' @importFrom stats integrate
 #' @export
 #' @examples
 #' set.seed(0)
@@ -43,8 +47,8 @@
 #' tpos_ind <- as.numeric(lt > 0)
 #' obs_ind <- as.numeric(rt != Inf)
 #' dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
-#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
-#' obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+#' # nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat,
+#' # right_dmat=dmats$right_dmat, obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 #' icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
 #' ICSKATO(icskatOut = icskatOut)
@@ -164,11 +168,11 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     if (is.null(bootstrapOut) | !useMixtureKurt) {
       # no bootstrap, use eigenvalues
       if (is.null(bootstrapOut)) {
-        tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$dfLambda[rho_it])
+        tempQ <- stats::qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$dfLambda[rho_it])
         muX <- QrhoDF$dfLambda[rho_it]
         sigmaX <- sqrt(2 * QrhoDF$dfLambda[rho_it])
       } else { # bootstrap available
-        tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$dfBoot[rho_it])
+        tempQ <- stats::qchisq(p = 1 - Tstat, ncp = 0, df = QrhoDF$dfBoot[rho_it])
         muX <- QrhoDF$dfBoot[rho_it]
         sigmaX <- sqrt(2 * QrhoDF$dfBoot[rho_it])
       }
@@ -178,7 +182,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
                                   a2 = tauVec[rho_it])
       mixDF <- 12 / mixKurt
       mixDFVec[rho_it] <- mixDF
-      tempQ <- qchisq(p = 1 - Tstat, ncp = 0, df = mixDF)
+      tempQ <- stats::qchisq(p = 1 - Tstat, ncp = 0, df = mixDF)
       muX <- mixDF
       sigmaX <- sqrt(2 * mixDF)
     }
@@ -199,20 +203,20 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
   }
 
   # append to QrhoDF
-  QrhoDF <- QrhoDF %>% mutate(rhoVec = rhoVec, tauVec = tauVec, qMinVec = qMinVec)
+  QrhoDF <- QrhoDF %>% dplyr::mutate(rhoVec = rhoVec, tauVec = tauVec, qMinVec = qMinVec)
 
   # integrate
   if (liuIntegrate) {
-    intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+    intOut <- tryCatch(stats::integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
                                  muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
     intDavies <- FALSE
   } else {
-    intOut <-  tryCatch(integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000,
+    intOut <-  tryCatch(stats::integrate(f = fIntegrate, lower=0, upper=40, subdivisions = 1000,
                                   muK1 = muK1, sigmaK1 = sigmaK1, sigmaZeta = sigmaZeta, kappaLambda = kappaLambda, QrhoDF = QrhoDF, abs.tol = 10^(-25)), error=function(e) e)
     intDavies <- TRUE
     # sometimes the CompQuadForm has numerical issues
     if (class(intOut)[1] == "simpleError") {
-      intOut <- tryCatch(integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
+      intOut <- tryCatch(stats::integrate(f = fIntegrateLiu, lower=0, upper=40, subdivisions = 1000,
                                    muK1 = muK1, sigmaK1 = sigmaK1, QrhoDF = QrhoDF, dfK1 = dfK1, abs.tol = 10^(-25)), error=function(e) e)
       intDavies <- FALSE
     }

@@ -22,6 +22,8 @@ singleSNPalt(
 
 \item{tpos_ind}{n*1 binary vector of whether the event was observed after follow-up started (takes value 1 if t>0, 0 otherwise).}
 
+\item{obs_ind}{n*1 vector of whether the event was observed or right-censored (takes value 1 if observed or 0 if right-censored).}
+
 \item{xMat}{non-SNP covariates matrix.}
 
 \item{gMat}{n*q genotype matrix.}
@@ -29,8 +31,6 @@ singleSNPalt(
 \item{coxph}{Boolean, whether to fit Cox PH model.}
 
 \item{survreg}{Boolean, whether to fit survreg() Wiibull model.}
-
-\item{obsInd}{n*1 vector of whether the event was observed or right-censored (takes value 1 if observed or 0 if right-censored).}
 }
 \value{
 A list with the elements:

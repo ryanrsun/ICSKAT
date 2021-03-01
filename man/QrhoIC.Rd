@@ -17,7 +17,7 @@ QrhoIC(
 
 \item{icskatOut}{The output list returned from  a call to ICSKAT().}
 
-\item{liu}{Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values for each Qrho. 
+\item{liu}{Boolean for whether to use Liu (TRUE) or Davies (FALSE) method in calculating p-values for each Qrho.
 Default is Liu, following SKAT package. If wanting to use bootstrap moments for Qrho, need to use Liu method.}
 
 \item{bootstrapOut}{The output (a list) from a call the ICSKATO_bootstrap() function, holding moments for Qrho.}

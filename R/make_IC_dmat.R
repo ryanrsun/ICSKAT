@@ -16,6 +16,8 @@
 #' \item{left_dmat}{n*(p+nKnots+2) design matrix for left end of interval.}
 #' \item{quant_r}{Quantiles used for constructing spline.}
 #'
+#' @importFrom stats quantile
+#'
 #' @export
 #' @examples
 #' set.seed(0)
@@ -35,7 +37,7 @@ make_IC_dmat <- function(xMat, lt, rt, obs_ind, tpos_ind, quant_r=NULL, nKnots=1
 
   # place the knots at equally spaced quantiles
   if (is.null(quant_r)) {
-    quant_r <- quantile(log(rt[obs_ind == 1]), probs=seq(from=0, to=1, length.out=nKnots+2))
+    quant_r <- stats::quantile(log(rt[obs_ind == 1]), probs=seq(from=0, to=1, length.out=nKnots+2))
   }
 
   # a0 and a1 are always there

@@ -12,6 +12,8 @@
 #'
 #' @return n*(s+1) matrix where element (i,j) holds the probability that subject i will fail in interval j.
 #'
+#' @importFrom zoo na.locf
+#'
 #' @export
 #' @examples
 #' set.seed(0)
@@ -42,7 +44,7 @@ construct_interval_probs <- function(allTimes, dmats, nullBeta, p, nKnots, infVa
     zeroIdx <- which(allTimes[, col_it] == 0)
     if (length(zeroIdx) > 0) {allTimes[zeroIdx, col_it] <- NA}
   }
-  filledTimes <- t(apply(allTimes, 1, na.locf))
+  filledTimes <- t(apply(allTimes, 1, zoo::na.locf))
   allTimes[, 2:ncol(allTimes)] <- filledTimes[, 2:ncol(filledTimes)]
 
   # holds the fitted null survival for each visit time
