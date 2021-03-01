@@ -48,7 +48,7 @@ Burden test from ICSKAT() except do a separate burden test for each SNP in gMat,
 }
 \examples{
 set.seed(0)
-gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+gMat <- matrix(data=rbinom(n=2000, size=2, prob=0.3), nrow=100)
 xMat <- matrix(data=rnorm(200), nrow=100)
 bhFunInv <- function(x) {x}
 obsTimes <- 1:5

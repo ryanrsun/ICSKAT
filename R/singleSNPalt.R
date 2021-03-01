@@ -16,6 +16,10 @@
 #' \item{pvalCox}{q*1 vector of marginal SNP p-values with Cox model}
 #' \item{pvalSurv}{q*1 vector of marginal SNP p-values with survreg Weibull model}
 #'
+#' @importFrom survival coxph
+#' @importFrom survival Surv
+#' @importFrom survival survreg
+#'
 #' @export
 #' @examples
 #' set.seed(2)
@@ -77,7 +81,7 @@ singleSNPalt <- function(lt, rt, tpos_ind, obs_ind, xMat, gMat, coxph=TRUE, surv
 #' @export
 #'
 survregFn <- function(x, xMat, leftTime2, rightTime2, p) {
-  tempMod <- survival::survreg(Surv(time = leftTime2, time2 = rightTime2, type="interval2") ~
+  tempMod <- survival::survreg(survival::Surv(time = leftTime2, time2 = rightTime2, type="interval2") ~
                                 xMat + x, dist="weibull")
   pval <- summary(tempMod)$table[p+2, 4]
   return(pval)
@@ -98,7 +102,7 @@ survregFn <- function(x, xMat, leftTime2, rightTime2, p) {
 #' @export
 #'
 coxphFn <- function(x, xMat, midTime, midEvent, p) {
-  tempMod <- survival::coxph(Surv(time = midTime,  event=midEvent) ~ xMat + x)
+  tempMod <- survival::coxph(survival::Surv(time = midTime,  event=midEvent) ~ xMat + x)
   pval <- summary(tempMod)$coefficients[p+1, 5]
   return(pval)
 }

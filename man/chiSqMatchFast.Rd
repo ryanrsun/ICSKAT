@@ -25,7 +25,7 @@ assumes the quadratic form case where the mean of the multivariate normal V=RV i
 }
 \examples{
 set.seed(2)
-gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
+gMat <- matrix(data=rbinom(n=2000, size=2, prob=0.3), nrow=100)
 xMat <- matrix(data=rnorm(200), nrow=100)
 bhFunInv <- function(x) {x}
 obsTimes <- 1:5
@@ -42,10 +42,13 @@ right_dmat=dmats$right_dmat, obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt
 icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
 lt = lt, rt = rt, obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat,
 null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
-kRho <- matrix(data=0.5, nrow=10, ncol=10)
-diag(kRho) <- 1
-toDecomp <- t(icskatOut$Ugamma) \%*\% kRho \%*\% icskatOut$Ugamma
+Rrho <- matrix(data=0.5, nrow=20, ncol=20)
+diag(Rrho) <- 1
+toDecomp <- Rrho \%*\% icskatOut$sig_mat
 tempEvals <- eigen(toDecomp, symmetric = TRUE, only.values = TRUE)$values
+idx1 <- which(tempEvals >= 0)
+idx2 <- which(tempEvals > mean(tempEvals[idx1])/100000)
+tempEvals <- tempEvals[idx2]
 chiSqMatchFast(lambdaVec = tempEvals)
 
 }
