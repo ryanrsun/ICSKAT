@@ -34,7 +34,7 @@
 #' @importFrom stats integrate
 #' @export
 #' @examples
-#' set.seed(0)
+#' set.seed(1)
 #' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
 #' xMat <- matrix(data=rnorm(200), nrow=100)
 #' bhFunInv <- function(x) {x}
@@ -47,8 +47,9 @@
 #' tpos_ind <- as.numeric(lt > 0)
 #' obs_ind <- as.numeric(rt != Inf)
 #' dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
-#' # nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat,
-#' # right_dmat=dmats$right_dmat, obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
+#' nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat,
+#' right_dmat=dmats$right_dmat, obs_ind = obs_ind, tpos_ind = tpos_ind,
+#' lt = lt, rt = rt)
 #' icskatOut <- ICskat(left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat, lt = lt, rt = rt,
 #' obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
 #' ICSKATO(icskatOut = icskatOut)

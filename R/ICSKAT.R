@@ -33,7 +33,7 @@
 #'
 #' @export
 #' @examples
-#' set.seed(0)
+#' set.seed(1)
 #' gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
 #' xMat <- matrix(data=rnorm(200), nrow=100)
 #' bhFunInv <- function(x) {x}
