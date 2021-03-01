@@ -36,7 +36,7 @@ n*(s+1) matrix where element (i,j) holds the probability that subject i will fai
 Construct the probabilities of falling into each time interval for bootstrapping of interval-censored data.
 }
 \examples{
-set.seed(0)
+set.seed(2)
 xMat <- matrix(data=rnorm(200), nrow=100)
 bhFunInv <- function(x) {x}
 obsTimes <- 1:5
@@ -48,9 +48,10 @@ rt <- outcomeDat$rightTimes
 tpos_ind <- as.numeric(lt > 0)
 obs_ind <- as.numeric(rt != Inf)
 dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
-nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat, right_dmat=dmats$right_dmat,
-obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
-intervalProbOutput <- construct_interval_probs(allTimes = outcomeDat$allVisits, dmats = dmats,
-nullBeta = nullFit$beta_fit, p = ncol(xMat), nKnots=1)
+nullFit <- ICSKAT_fit_null(init_beta = rep(0, 5), left_dmat = dmats$left_dmat,
+right_dmat=dmats$right_dmat, obs_ind = obs_ind, tpos_ind = tpos_ind,
+lt = lt, rt = rt)
+intervalProbOutput <- construct_interval_probs(allTimes = outcomeDat$allVisits,
+dmats = dmats, nullBeta = nullFit$beta_fit, p = ncol(xMat), nKnots=1)
 
 }
