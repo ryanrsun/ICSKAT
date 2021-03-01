@@ -28,7 +28,7 @@
 #'
 #' @importFrom stats pchisq
 #' @importFrom Rcpp evalCpp
-#'@importFrom Rcpp sourceCpp
+#' @importFrom Rcpp sourceCpp
 #' @useDynLib ICSKAT
 #'
 #' @export
