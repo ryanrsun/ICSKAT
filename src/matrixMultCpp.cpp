@@ -1,4 +1,3 @@
-// [[Rcpp::depends(RcppEigen)]]
 //' matrixMultCpp.cpp
 //'
 //' Faster matrix multiplication for ICSKAT tests.
