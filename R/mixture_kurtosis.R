@@ -1,9 +1,9 @@
 #' mixture_kurtosis.R
 #'
-#' Calculate the kurtosis of Qrho when performing SKATO with bootstrapped moments. This function is 
+#' Calculate the kurtosis of Qrho when performing SKATO with bootstrapped moments. This function is
 #' included to allow for the potential to match the SKAT package, however we generally don't call it
 #' because we can just bootstrap the kurtosis of Qrho directly if we are already doing bootstrap,
-#' thus avoiding this calculation. Also it's only used in calculating the qmin values, not in 
+#' thus avoiding this calculation. Also it's only used in calculating the qmin values, not in
 #' the final p-value calculation, which uses a kappa expression that is only the first two terms of Qrho.
 #'
 #' @param tempDF1 Generally the bootstrapped kurtosis of the mixture of chi-squares in kappa.
@@ -14,8 +14,6 @@
 #' @return Kurtosis (excess kurtosis to be more precise), use df = 12 / kurtosis.
 #'
 #' @export
-#' @examples
-#' mixture_kurtosis(1, 1, 1, 1, 1)
 #'
 mixture_kurtosis <- function(tempDF1, tempDF2, v1, a1, a2) {
   # df1 is for the first quadratic form plus xi

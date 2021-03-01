@@ -20,12 +20,12 @@
 #'
 #' @export
 #' @examples
-#' 
+#' set.seed(0)
 #' xMat <- matrix(data=rnorm(200), nrow=100)
 #' bhFunInv <- function(x) {x}
 #' obsTimes <- 1:5
 #' etaVec <- rep(0, 100)
-#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTimes = obsTimes, windowHalf = 0.1,
 #' probMiss = 0.1, etaVec = etaVec)
 #'
 gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", probMiss=0.1) {
@@ -47,17 +47,17 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
   # 1 - probMiss is the chance of making it to the visit
   nVisits <- length(obsTimes)
   madeVisit <- matrix(data=rbinom(n=n*nVisits, size=1, prob=(1 - probMiss)), nrow=n, ncol=nVisits)
-  
+
   # make sure there is at least one visit for each subject
   nMadeVisits <- apply(madeVisit, 1, sum)
   zeroVisits <- which(nMadeVisits == 0)
   while (length(zeroVisits) > 0) {
-    madeVisit[zeroVisits, ] <- matrix(data=rbinom(n=length(zeroVisits) * nVisits, size=1, 
+    madeVisit[zeroVisits, ] <- matrix(data=rbinom(n=length(zeroVisits) * nVisits, size=1,
                                                   prob=(1 - probMiss)), nrow=length(zeroVisits), ncol=nVisits)
     nMadeVisits <- apply(madeVisit, 1, sum)
     zeroVisits <- which(nMadeVisits == 0)
   }
-		
+
 	# actual visit time is uniformly distributed around the intended obsTime, windowHalf on each side
   visitTime <- sweep(matrix(data=runif(n=n*nVisits, min=-windowHalf, max=windowHalf), nrow=n, ncol=nVisits),
                      MARGIN=2, STATS=obsTimes, FUN="+")
@@ -73,7 +73,7 @@ gen_IC_data <- function(bhFunInv, obsTimes, windowHalf, etaVec, mod = "PH", prob
   tpos_ind <- ifelse(leftTimes == 0, 0, 1)
 
   # return
-  return(list(obs_ind = obs_ind, tpos_ind = tpos_ind, tVec = tVec, leftTimes = leftTimes, 
+  return(list(obs_ind = obs_ind, tpos_ind = tpos_ind, tVec = tVec, leftTimes = leftTimes,
               rightTimes = rightTimes, allVisits=allVisits))
 }
 

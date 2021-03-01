@@ -18,11 +18,12 @@
 #'
 #' @export
 #' @examples
+#' set.seed(0)
 #' xMat <- matrix(data=rnorm(200), nrow=100)
 #' bhFunInv <- function(x) {x}
 #' obsTimes <- 1:5
 #' etaVec <- rep(0, 100)
-#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTimes = obsTimes, windowHalf = 0.1,
 #' probMiss = 0.1, etaVec = etaVec)
 #' lt <- outcomeDat$leftTimes
 #' rt <- outcomeDat$rightTimes
@@ -31,7 +32,7 @@
 #' make_IC_dmat(xMat = xMat, lt = lt, rt = rt, obs_ind = obs_ind, tpos_ind = tpos_ind)
 #'
 make_IC_dmat <- function(xMat, lt, rt, obs_ind, tpos_ind, quant_r=NULL, nKnots=1) {
-  
+
   # place the knots at equally spaced quantiles
   if (is.null(quant_r)) {
     quant_r <- quantile(log(rt[obs_ind == 1]), probs=seq(from=0, to=1, length.out=nKnots+2))

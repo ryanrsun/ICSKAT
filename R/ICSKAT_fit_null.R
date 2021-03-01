@@ -24,11 +24,12 @@
 #'
 #' @export
 #' @examples
+#' set.seed(0)
 #' xMat <- matrix(data=rnorm(200), nrow=100)
 #' bhFunInv <- function(x) {x}
 #' obsTimes <- 1:5
 #' etaVec <- rep(0, 100)
-#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+#' outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTimes = obsTimes, windowHalf = 0.1,
 #' probMiss = 0.1, etaVec = etaVec)
 #' lt <- outcomeDat$leftTimes
 #' rt <- outcomeDat$rightTimes

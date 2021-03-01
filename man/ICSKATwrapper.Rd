@@ -59,12 +59,13 @@ Wrapper to fit the null model and run ICSKAT all in one instead of separately - 
 for error checking or using different initial values when fit fails to converge.
 }
 \examples{
+set.seed(0)
 gMat <- matrix(data=rbinom(n=200, size=2, prob=0.3), nrow=100)
 xMat <- matrix(data=rnorm(200), nrow=100)
 bhFunInv <- function(x) {x}
 obsTimes <- 1:5
 etaVec <- rep(0, 100)
-outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTime = obsTime, windowHalf = 0.1,
+outcomeDat <- gen_IC_data(bhFunInv = bhFunInv, obsTimes = obsTimes, windowHalf = 0.1,
 probMiss = 0.1, etaVec = etaVec)
 lt <- outcomeDat$leftTimes
 rt <- outcomeDat$rightTimes
