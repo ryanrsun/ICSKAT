@@ -6,29 +6,6 @@
 
 using namespace Rcpp;
 
-// eigenMapMatMultC
-SEXP eigenMapMatMultC(const Eigen::Map<Eigen::MatrixXd> A, Eigen::Map<Eigen::MatrixXd> B);
-RcppExport SEXP _ICSKAT_eigenMapMatMultC(SEXP ASEXP, SEXP BSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type A(ASEXP);
-    Rcpp::traits::input_parameter< Eigen::Map<Eigen::MatrixXd> >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(eigenMapMatMultC(A, B));
-    return rcpp_result_gen;
-END_RCPP
-}
-// eigenMapMatMultCrossprod
-SEXP eigenMapMatMultCrossprod(const Eigen::Map<Eigen::MatrixXd> A);
-RcppExport SEXP _ICSKAT_eigenMapMatMultCrossprod(SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(eigenMapMatMultCrossprod(A));
-    return rcpp_result_gen;
-END_RCPP
-}
 // eigenMapMatMultCrossTwo
 SEXP eigenMapMatMultCrossTwo(const Eigen::Map<Eigen::MatrixXd> A, Eigen::Map<Eigen::MatrixXd> B);
 RcppExport SEXP _ICSKAT_eigenMapMatMultCrossTwo(SEXP ASEXP, SEXP BSEXP) {
@@ -43,8 +20,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ICSKAT_eigenMapMatMultC", (DL_FUNC) &_ICSKAT_eigenMapMatMultC, 2},
-    {"_ICSKAT_eigenMapMatMultCrossprod", (DL_FUNC) &_ICSKAT_eigenMapMatMultCrossprod, 1},
     {"_ICSKAT_eigenMapMatMultCrossTwo", (DL_FUNC) &_ICSKAT_eigenMapMatMultCrossTwo, 2},
     {NULL, NULL, 0}
 };
