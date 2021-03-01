@@ -105,5 +105,5 @@ ICSKAT_fit_null <- function(init_beta, left_dmat, right_dmat, obs_ind, tpos_ind,
   }
 
   # return
-  return(list(beta_fit=beta_new, iter=iter, diff_beta=diff_beta, Itt=iMat, err=0, errMsg=""))
+  return(list(beta_fit=as.numeric(beta_new), iter=iter, diff_beta=diff_beta, Itt=iMat, err=0, errMsg=""))
 }

@@ -110,5 +110,5 @@ ICSKAT_fit_null_PO <- function(init_beta, left_dmat, right_dmat, obs_ind, tpos_i
     # checkpoint prints iterations
     if(checkpoint) {cat("iter ", iter, "diff", diff_beta, "\n")}
   }
-  return(list(beta_fit=beta_new, iter=iter, Itt=iMat, diff_beta=diff_beta, err=0, errMsg=""))
+  return(list(beta_fit=as.numeric(beta_new), iter=iter, Itt=iMat, diff_beta=diff_beta, err=0, errMsg=""))
 }
