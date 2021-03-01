@@ -13,6 +13,7 @@
 #'
 #' @return The value of the integrand at x.
 #'
+#' @importFrom CompQuadForm davies
 #' @importFrom stats dchisq
 #'
 #' @export

@@ -62,6 +62,6 @@ tpos_ind <- as.numeric(lt > 0)
 obs_ind <- as.numeric(rt != Inf)
 dmats <- make_IC_dmat(xMat = xMat, lt = lt, rt = rt, obs_ind = obs_ind,
 tpos_ind = tpos_ind)
-ICSKAT_fit_null_PO_new(init_beta = rep(0.1, 5), left_dmat = dmats$left_dmat,
+ICSKAT_fit_null_PO(init_beta = rep(0.1, 5), left_dmat = dmats$left_dmat,
 right_dmat=dmats$right_dmat, obs_ind = obs_ind, tpos_ind = tpos_ind, lt = lt, rt = rt)
 }

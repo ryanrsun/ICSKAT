@@ -12,6 +12,7 @@
 #' for each fixed rho (using both bootstrap and analytic calculation), and the mean and variance of each Qrho using both
 #' bootstrap and analytic calculation.
 #'
+#' @importFrom CompQuadForm davies
 #' @importFrom stats pchisq
 #'
 #' @export

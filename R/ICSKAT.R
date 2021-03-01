@@ -26,6 +26,7 @@
 #' \item{err}{Will be 0 for no error, 22 if had to adjust parameters on CompQuadForm (totally normal), or 99 if NA in variance matrix. ICSKATwrapper will return 1 here if the null fit has an error}
 #' \item{errMsg}{Explains error code, blank string if no error}
 #'
+#' @importFrom CompQuadForm davies
 #' @importFrom stats pchisq
 #' @importFrom Rcpp evalCpp
 #' @importFrom Rcpp sourceCpp

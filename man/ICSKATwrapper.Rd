@@ -72,7 +72,8 @@ rt <- outcomeDat$rightTimes
 tpos_ind <- as.numeric(lt > 0)
 obs_ind <- as.numeric(rt != Inf)
 dmats <- make_IC_dmat(xMat, lt, rt, obs_ind, tpos_ind)
-ICSKATwrapper(left_dmat = dmats$left_dmat, right_dmat = dmats$right_dmat, initValues = rep(0, ncol(xMat) + 3),
-lt = lt, rt = rt, obs_ind = obs_ind, tpos_ind = tpos_ind, gMat = gMat, returnNull = TRUE)
+ICSKATwrapper(left_dmat = dmats$left_dmat, right_dmat = dmats$right_dmat,
+initValues = rep(0, ncol(xMat) + 3), lt = lt, rt = rt, obs_ind = obs_ind,
+tpos_ind = tpos_ind, gMat = gMat, returnNull = TRUE)
 
 }
