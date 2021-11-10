@@ -55,7 +55,28 @@
 #' null_beta = nullFit$beta_fit, Itt = nullFit$Itt)
 #' ICSKATO(icskatOut = icskatOut)
 ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , useMixtureKurt = FALSE,
-                    liu=TRUE, liuIntegrate=FALSE, bootstrapOut = NULL,  alwaysCentral=FALSE) {
+                    liu=TRUE, liuIntegrate=FALSE, bootstrapOut = NULL,  alwaysCentral=FALSE, ACAT = FALSE) {
+
+  # get the Qrho, p-value of Qrho, its distribution parameters
+  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu, bootstrapOut = bootstrapOut,
+                                        alwaysCentral=alwaysCentral)
+  # sometimes numerically we just get weird things like only one eigenvalue
+  if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
+
+  # use ACAT to combine p-values across \rho instead of original SKATO approach
+  if (ACAT) {
+    if (is.na(QrhoDF$liuPval[1])) {
+      ACATp <- ACAT(Pvals = QrhoDF$daviesPval)
+    } else {
+      ACATp <- ACAT(Pvals = QrhoDF$liuPval)
+    }
+
+    # return
+    return(list(pval = ACATp, QrhoDF = QrhoDF, r=NA, intDavies=NA, err=0))
+  }
+  
+  # sometimes numerically we just get weird things like only one eigenvalue
+  if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
 
   # load bootstrap information
   if (!is.null(bootstrapOut)) {
@@ -146,12 +167,6 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     term1 <- p^2 * tempRho + sum(forDiag[1, ]^2) * (1 - tempRho)
     tauVec[rho_it] <- sum(term1) * sum(zBar^2)
   }
-
-  # get the Qrho, p-value of Qrho, its distribution parameters
-  QrhoDF <- QrhoIC(rhoVec = rhoVec, icskatOut = icskatOut, liu=liu, bootstrapOut = bootstrapOut,
-                   alwaysCentral=alwaysCentral)
-  # sometimes numerically we just get weird things like only one eigenvalue
-  if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
 
   # T statistic
   if (liu) {
