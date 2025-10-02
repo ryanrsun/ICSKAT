@@ -1,5 +1,4 @@
-#'
-#' Aggregated Cauchy Assocaition Test
+#' Aggregated Cauchy Association Test
 #'
 #' A p-value combination method using the Cauchy distribution.
 #' Code provided by Dr. Yaowu Liu.
@@ -9,8 +8,9 @@
 #' @param Pvals a numeric vector of p-values to be combined by ACAT.
 #' @return p-value of ACAT.
 #' @author Yaowu Liu
-#' @export 
-#' @examples 
+#' @importFrom stats pcauchy
+#' @export
+#' @examples
 #' p.values<-c(2e-02,4e-04,0.2,0.1,0.8)
 #' ACAT(Pvals=p.values)
 #'
@@ -36,7 +36,7 @@ ACAT<-function(Pvals,Weights=NULL){
     warning("There are p-values that are exactly 1!")
     return(1)
   }
-  
+
   #### Default: equal weights. If not, check the validity of the user supplied weights and standadize them.
   if (is.null(Weights)){
     Weights<-rep(1/length(Pvals),length(Pvals))
@@ -47,8 +47,8 @@ ACAT<-function(Pvals,Weights=NULL){
   }else{
     Weights<-Weights/sum(Weights)
   }
-  
-  
+
+
   #### check if there are very small non-zero p values
   is.small<-(Pvals<1e-16)
   if (sum(is.small)==0){
@@ -61,7 +61,7 @@ ACAT<-function(Pvals,Weights=NULL){
   if (cct.stat>1e+15){
     pval<-(1/cct.stat)/pi
   }else{
-    pval<-1-pcauchy(cct.stat)
+    pval<-1-stats::pcauchy(cct.stat)
   }
   return(pval)
 }

@@ -11,7 +11,8 @@ ICSKATO(
   liu = TRUE,
   liuIntegrate = FALSE,
   bootstrapOut = NULL,
-  alwaysCentral = FALSE
+  alwaysCentral = FALSE,
+  ACAT = FALSE
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ If Davies, cannot use bootstrapped moments of Qrho.}
 \item{bootstrapOut}{Output list from call to ICSKATO_bootstrap().}
 
 \item{alwaysCentral}{A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.}
+
+\item{ACAT}{Uses the ACAT method to perform ICSKATO, will result in a conservative test but is much faster.}
 }
 \value{
 A list with the elements:
