@@ -11,6 +11,7 @@
 #' @param liuIntegrate Boolean for whether to use Liu moment matching approximation integration in SKATO p-value (as opposed to Davies).
 #' @param bootstrapOut Output list from call to ICSKATO_bootstrap().
 #' @param alwaysCentral A boolean, if TRUE, follow SKAT package practice of always setting delta=0 in chi-square moment matching.
+#' @param ACAT Uses the ACAT method to perform ICSKATO, will result in a conservative test but is much faster.
 #'
 #' @return A list with the elements:
 #' \item{pval}{SKATO p-value.}
@@ -74,7 +75,7 @@ ICSKATO <- function(rhoVec=c(0, 0.01, 0.04, 0.09, 0.25, 0.5, 1), icskatOut , use
     # return
     return(list(pval = ACATp, QrhoDF = QrhoDF, r=NA, intDavies=NA, err=0))
   }
-  
+
   # sometimes numerically we just get weird things like only one eigenvalue
   if (class(QrhoDF)[1] == "numeric") { return(list(pval = NA, QrhoDF=NA, r=NA, intDavies = NA, err=1)) }
 
