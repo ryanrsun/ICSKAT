@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Ryan Sun" />
+
+<meta name="date" content="2021-11-23" />
+
+<title>ICSKAT Tutorial</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">ICSKAT Tutorial</h1>
+<h4 class="author">Ryan Sun</h4>
+<h4 class="date">2021-11-23</h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The ICSKAT package implements the Interval-Censored Sequence Kernel Association Test (ICSKAT), the interval-censored Burden test, and the ICSKAT-Optimal (ICSKATO) test for inference on sets of features (e.g. all the SNPs in a gene or pathway) in genetic association studies.</p>
+<p>Interval-censored data are a type of failure time data (also known as time-to-event data) quite commonly found in modern genetic datasets including the UK Biobank (UKB) and St. Jude Lifetime Cohort Study (SJLIFE). Many people are more familiar with right-censored data, which are a special case of interval-censored data. In right-censored data, an event time is either known to happen exactly or is only known to fall after some last observation time. In interval-censored data, an event time is not known exactly but is only known to fall in some interval (e.g between 0 and 20, or between 19.5 and 22.3, or between 50 and infinity).</p>
+<p>For example, in SJLIFE, childhood cancer subjects who have turned 18 and have survived at least five years past their initial cancer treatment are invited back at regular intervals for comprehensive, multi-day clinical checkups. These patients are at extremely high risk of many chronic conditions, and they suffer an average of three severe or life-threatening conditions by age 40. At the (free) visits, the patients undergo a variety of diagnostic tests across many organ systems. Many diseases, for instance bone mineral density deficiency, are only able to be found at these visits because patients cannot self-diagnose the conditions on their own at home. Thus, if a subject visited the hospital for check-ups at age 20, 25, and 30, and bone mineral density deficiency was found at the age 25 visit, the disease onset time is only known to fall between 20 and 25.</p>
+<p>In UKB, some patients visit assessment centers multiple times, and each time they take a questionnaire asking about a variety of health outcomes. For example, one question asks whether they have had any fractures. If the patients answers “no” at the first visit and “yes” at the second visit, then the fracture is only known to have occured between the first and second visits.</p>
+<p>There are some ad-hoc ways to work with interval-censored data, including dichotomizing the occurrence of the event and working with binary outcomes (e.g. logistic regression) or imputing the occurrence time to fall in the middle of the interval and applying right-censored survival analysis methodology. However applying interval-censored methodology to interval-censored data often results in better operating characteristics (e.g. better control of Type I error rate or more power).</p>
+</div>
+<div id="steps" class="section level2">
+<h2>Steps</h2>
+<p>There are three steps to running the ICSKAT test with this package:</p>
+<ol style="list-style-type: decimal">
+<li>First you need to generate the design matrices for the null model in the expected format. You only need to do this once for all SNP-sets to be tested. The function is make_IC_dmat(), and it takes the following arguments:
+<ul>
+<li>xMat is the n*p matrix of non-genetic covariates (not including an intercept)</li>
+<li>lt is the n*1 vector of times for the left side of the interval. If an observation is left-censored, you can just put in 0.</li>
+<li>rt is the n*1 vector of times for the right side of the interval. If an observation is right-censored, you can put in Inf or any numeric value.</li>
+<li>obs_ind is the n*1 indicator vector for whether the observation is right-censored. If so, there should be a 0, otherwise there should be a 1.</li>
+<li>tpos_ind is the n*1 indicator vector of whether the observation is left-censored. If so, there should be a 0, otherwise there should be 1.</li>
+<li>quant_r can be used to pass in knot locations for the spline, we suggest not specifying this and letting the package work automatically.</li>
+<li>nKnots is a scalar number of interior knots. The default of 1 will create three total knots, one interior and two endpoint knots.</li>
+</ul></li>
+<li>Next you need to fit the null model. You only need to do this once for all SNP-sets to be tested. The call is ICSKAT_fit_null(), and you need the following arguments:
+<ul>
+<li>init_beta is a vector holding the initial guess at the covariates for each column in the design matrices generated by make_IC_dmat(). The number of elements should be equal to the number of columns in the design matrices. Usually you can just initialize it to a vector of 0s or 1s. If you happen to have a good idea of what the coefficients are, then this will speed up convergence.<br />
+</li>
+<li>left_dmat is output directly from make_IC_dmat().</li>
+<li>right_dmat is output directly from make_IC_dmat</li>
+<li>obs_ind, tpos_ind, lt, and rt have been covered above.</li>
+</ul></li>
+<li>Finally, call ICskat() for each set of SNPs that you want to test. The gMat argument should be the n*q matrix of genotypes. You will also need left_dmat, right_dmat, lt, rt, obs_ind, and tpos_ind, which have been covered above. Finally, you will need null_beta and Itt, which come directly from ICSKAT_fit_null, see below for an example. You can also call ICSKATO() to run the ICSKATO test. This function takes the output form ICskat() as the only argument.</li>
+</ol>
+</div>
+<div id="worked-example" class="section level2">
+<h2>Worked Example</h2>
+<p>Suppose we are interested in testing whether a specific gene is associated with time to bone mineral density deficiency. We will simulate event times for 10,000 subjects under a proportional hazards model with baseline cumulative hazard function H(t)=t. We will set four observations times at times 1, 2, 3, and 4, with each subject’s exact visit times drawn from a Uniform(-0.25, 0.25) distribution surrounding these times. Each subject will have a 10% chance of missing any given visit. Our genetic data will consist of 50 SNPs in the gene of interest, and for each patient we have their minor allele count (0,1,2) at each of the 50 SNPs. Additionally suppose have non-genetic covariates for each subject’s gender and whether they take daily vitamins (both binary):</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(ICSKAT)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">set.seed</span>(<span class="dv">0</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">n &lt;-<span class="st"> </span><span class="dv">10</span><span class="op">^</span><span class="dv">4</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">q &lt;-<span class="st"> </span><span class="dv">50</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co"># generate data</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="co"># all SNPs have minor allele frequency 0.3 in this toy example</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">gMat &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data=</span><span class="kw">rbinom</span>(<span class="dt">n=</span>n<span class="op">*</span>q, <span class="dt">size=</span><span class="dv">2</span>, <span class="dt">prob=</span><span class="fl">0.3</span>), <span class="dt">nrow=</span>n)</a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="co"># gender and whether they take daily vitamins</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10">xMat &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data=</span><span class="kw">rbinom</span>(<span class="dt">n=</span>n<span class="op">*</span><span class="dv">2</span>, <span class="dt">size=</span><span class="dv">1</span>, <span class="dt">prob=</span><span class="fl">0.5</span>), <span class="dt">nrow=</span>n)</a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="co"># the baseline cumulative hazard function</span></a>
+<a class="sourceLine" id="cb1-12" data-line-number="12">bhFunInv &lt;-<span class="st"> </span><span class="cf">function</span>(x) {x}</a>
+<a class="sourceLine" id="cb1-13" data-line-number="13"><span class="co"># observation times</span></a>
+<a class="sourceLine" id="cb1-14" data-line-number="14">obsTimes &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span></a>
+<a class="sourceLine" id="cb1-15" data-line-number="15"><span class="co"># no effect of either gender or daily vitamins</span></a>
+<a class="sourceLine" id="cb1-16" data-line-number="16">etaVec &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, n)</a>
+<a class="sourceLine" id="cb1-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb1-18" data-line-number="18"><span class="co"># generate data</span></a>
+<a class="sourceLine" id="cb1-19" data-line-number="19">outcomeDat &lt;-<span class="st"> </span><span class="kw">gen_IC_data</span>(<span class="dt">bhFunInv =</span> bhFunInv, <span class="dt">obsTimes =</span> obsTimes, <span class="dt">windowHalf =</span> <span class="fl">0.25</span>,</a>
+<a class="sourceLine" id="cb1-20" data-line-number="20">                          <span class="dt">probMiss =</span> <span class="fl">0.1</span>, <span class="dt">etaVec =</span> etaVec)</a>
+<a class="sourceLine" id="cb1-21" data-line-number="21">lt &lt;-<span class="st"> </span>outcomeDat<span class="op">$</span>leftTimes</a>
+<a class="sourceLine" id="cb1-22" data-line-number="22">rt &lt;-<span class="st"> </span>outcomeDat<span class="op">$</span>rightTimes</a>
+<a class="sourceLine" id="cb1-23" data-line-number="23"><span class="co"># indicators of left- and right-censoring</span></a>
+<a class="sourceLine" id="cb1-24" data-line-number="24">tpos_ind &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(lt <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</a>
+<a class="sourceLine" id="cb1-25" data-line-number="25">obs_ind &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(rt <span class="op">!=</span><span class="st"> </span><span class="ot">Inf</span>)</a>
+<a class="sourceLine" id="cb1-26" data-line-number="26"></a>
+<a class="sourceLine" id="cb1-27" data-line-number="27"><span class="co"># make design matrix with cubic spline terms</span></a>
+<a class="sourceLine" id="cb1-28" data-line-number="28">dmats &lt;-<span class="st"> </span><span class="kw">make_IC_dmat</span>(xMat, lt, rt, obs_ind, tpos_ind)</a>
+<a class="sourceLine" id="cb1-29" data-line-number="29"><span class="co"># fit null model - only need to do this once for each genetic set (note there is no information</span></a>
+<a class="sourceLine" id="cb1-30" data-line-number="30"><span class="co"># on the SNPs used here)</span></a>
+<a class="sourceLine" id="cb1-31" data-line-number="31">nullFit &lt;-<span class="st"> </span><span class="kw">ICSKAT_fit_null</span>(<span class="dt">init_beta =</span> <span class="kw">rep</span>(<span class="dv">0</span>, <span class="dv">5</span>), <span class="dt">left_dmat =</span> dmats<span class="op">$</span>left_dmat, <span class="dt">right_dmat=</span>dmats<span class="op">$</span>right_dmat, </a>
+<a class="sourceLine" id="cb1-32" data-line-number="32">                           <span class="dt">obs_ind =</span> obs_ind, <span class="dt">tpos_ind =</span> tpos_ind, <span class="dt">lt =</span> lt, <span class="dt">rt =</span> rt)</a>
+<a class="sourceLine" id="cb1-33" data-line-number="33"><span class="co"># perform the ICSKAT and Burden tests</span></a>
+<a class="sourceLine" id="cb1-34" data-line-number="34">icskatOut &lt;-<span class="st"> </span><span class="kw">ICskat</span>(<span class="dt">left_dmat =</span> dmats<span class="op">$</span>left_dmat, <span class="dt">right_dmat=</span>dmats<span class="op">$</span>right_dmat, <span class="dt">lt =</span> lt, <span class="dt">rt =</span> rt,</a>
+<a class="sourceLine" id="cb1-35" data-line-number="35">       <span class="dt">obs_ind =</span> obs_ind, <span class="dt">tpos_ind =</span> tpos_ind, <span class="dt">gMat =</span> gMat, <span class="dt">null_beta =</span> <span class="kw">as.numeric</span>(nullFit<span class="op">$</span>beta_fit), <span class="dt">Itt =</span> nullFit<span class="op">$</span>Itt)</a>
+<a class="sourceLine" id="cb1-36" data-line-number="36">icskatOut<span class="op">$</span>p_SKAT</a></code></pre></div>
+<pre><code>## [1] 0.6011683</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">icskatOut<span class="op">$</span>p_burden</a></code></pre></div>
+<pre><code>## [1] 0.256489</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># perform the ICSKATO test</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">ICSKATO</span>(<span class="dt">icskatOut =</span> icskatOut)<span class="op">$</span>pval</a></code></pre></div>
+<pre><code>## [1] 0.4500598</code></pre>
+<p>If we want to test another SNP set (e.g. another gene), we don’t need to run the make_IC_dmat or ICSKAT_fit_null functions again. Just run ICskat() on the new genotype matrix.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="co"># another gene with 100 SNPs in it</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">gMat2 &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data=</span><span class="kw">rbinom</span>(<span class="dt">n=</span>n<span class="op">*</span><span class="dv">100</span>, <span class="dt">size=</span><span class="dv">2</span>, <span class="dt">prob=</span><span class="fl">0.3</span>), <span class="dt">nrow=</span>n)</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="co"># we don't need to run the make_IC_dmat or ICSKAT_fit_null functions again as long</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="co"># as the event times and non-genetic covariates haven't changed.</span></a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">icskatOut2 &lt;-<span class="st"> </span><span class="kw">ICskat</span>(<span class="dt">left_dmat =</span> dmats<span class="op">$</span>left_dmat, <span class="dt">right_dmat=</span>dmats<span class="op">$</span>right_dmat, <span class="dt">lt =</span> lt, <span class="dt">rt =</span> rt,</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">       <span class="dt">obs_ind =</span> obs_ind, <span class="dt">tpos_ind =</span> tpos_ind, <span class="dt">gMat =</span> gMat2, <span class="dt">null_beta =</span> <span class="kw">as.numeric</span>(nullFit<span class="op">$</span>beta_fit), <span class="dt">Itt =</span> nullFit<span class="op">$</span>Itt)</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">icskatOut2<span class="op">$</span>p_SKAT</a></code></pre></div>
+<pre><code>## [1] 0.8072349</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">icskatOut2<span class="op">$</span>p_burden</a></code></pre></div>
+<pre><code>## [1] 0.4946116</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># perform the ICSKATO test</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw">ICSKATO</span>(<span class="dt">icskatOut =</span> icskatOut2)<span class="op">$</span>pval</a></code></pre></div>
+<pre><code>## [1] 0.782592</code></pre>
+<p>Questions or novel applications? Please let me know! Contact information can be found in the package description.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
