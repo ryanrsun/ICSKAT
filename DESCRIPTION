@@ -1,7 +1,7 @@
 Package: ICSKAT
 Type: Package
 Title: Interval-Censored Sequence Kernel Association Test
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
 	person("Ryan", "Sun", email = "ryansun.work@gmail.com", role = c("aut", "cre")),
 	person("Liang", "Zhu", role="aut"))
